@@ -137,6 +137,7 @@ async function main() {
     logicShader.use();
     gl.uniform1i(logicShader.location("uTexture"), 0);
     gl.uniform2f(logicShader.location("screenSize"), 800, 500);
+    gl.uniform1f(logicShader.location("rest"), 0.5);
 
     function renderFrame() {
         logicShader.use();
