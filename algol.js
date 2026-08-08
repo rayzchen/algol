@@ -99,7 +99,7 @@ const vertices = new Float32Array([
     -1.0,-1.0, 0.0,
     1.0, 1.0, 0.0,
     -1.0, 1.0, 0.0
-])
+]);
 
 async function main() {
     if (gl == null) {
@@ -118,26 +118,48 @@ async function main() {
 
     const vertexResponse = await fetch("vertex.glsl");
     const vertexSource = await vertexResponse.text();
-    const fragmentResponse = await fetch("fragment.glsl");
-    const fragmentSource = await fragmentResponse.text();
+    const renderFragResponse = await fetch("frag_render.glsl");
+    const renderFragSource = await renderFragResponse.text();
+    const logicFragResponse = await fetch("frag_logic.glsl");
+    const logicFragSource = await logicFragResponse.text();
 
-    const shader = new Shader(vertexSource, fragmentSource);
-    const front = new Texture(800, 500, 0.1);
-    const back = new Texture(800, 500);
+    const renderShader = new Shader(vertexSource, renderFragSource);
+    const logicShader = new Shader(vertexSource, logicFragSource);
+
+    let front = new Texture(800, 500);
+    let back = new Texture(800, 500, 0.4);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    shader.use();
-    gl.uniform1i(shader.location("u_texture"), 0);
+    renderShader.use();
+    gl.uniform1i(renderShader.location("uTexture"), 0);
+    logicShader.use();
+    gl.uniform1i(logicShader.location("uTexture"), 0);
+    gl.uniform2f(logicShader.location("screenSize"), 800, 500);
 
-    front.bindTexture();
-    back.renderTo();
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    function renderFrame() {
+        logicShader.use();
+        back.bindTexture();
+        front.renderTo();
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    back.bindTexture();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+        renderShader.use();
+        front.bindTexture();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        let temp = front;
+        front = back;
+        back = temp;
+
+        requestAnimationFrame(renderFrame);
+    }
+
+    requestAnimationFrame(renderFrame);
+}
+
+function renderFrame() {
 }
 
 await main();
