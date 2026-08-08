@@ -1,6 +1,10 @@
 /** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("gl-canvas");
 const gl = canvas.getContext("webgl2");
+window.onresize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+};
 
 class Texture {
     constructor(width, height, fill=0) {
@@ -18,6 +22,7 @@ class Texture {
 
         this.texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texImage2D(
@@ -107,6 +112,8 @@ async function main() {
         return;
     }
 
+    window.onresize();
+
     const vbo = gl.createBuffer();
     const vao = gl.createVertexArray();
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
@@ -126,8 +133,8 @@ async function main() {
     const renderShader = new Shader(vertexSource, renderFragSource);
     const logicShader = new Shader(vertexSource, logicFragSource);
 
-    let front = new Texture(800, 500);
-    let back = new Texture(800, 500, 0.4);
+    let front = new Texture(canvas.width, canvas.height);
+    let back = new Texture(canvas.width, canvas.height, 0.4);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -136,7 +143,7 @@ async function main() {
     gl.uniform1i(renderShader.location("uTexture"), 0);
     logicShader.use();
     gl.uniform1i(logicShader.location("uTexture"), 0);
-    gl.uniform2f(logicShader.location("screenSize"), 800, 500);
+    gl.uniform2f(logicShader.location("screenSize"), canvas.width, canvas.height);
     gl.uniform1f(logicShader.location("rest"), 0.5);
 
     function renderFrame() {
@@ -160,7 +167,4 @@ async function main() {
     requestAnimationFrame(renderFrame);
 }
 
-function renderFrame() {
-}
-
-await main();
+window.addEventListener("DOMContentLoaded", async () => await main(), false);
