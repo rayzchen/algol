@@ -5,16 +5,42 @@ body {
     overflow: hidden;
     font-size: 1.2em;
     font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
+    color: white;
 }
 
-#fps-counter {
+.panel {
     position: absolute;
+}
+
+.panel p {
+    margin: 0;
+}
+
+.left-panel {
     left: 1.5em;
     top: 1em;
+}
+
+.right-panel {
+    right: 1.5em;
+    top: 1em;
+}
+
+.panel-item {
     background-color: #3337;
     backdrop-filter: blur(2px);
     padding: 0.3em 0.5em;
     border: 1px solid black;
     border-radius: 3px;
-    color: white;
+    user-select: none;
+}
+
+.bottom-panel {
+    position: absolute;
+    bottom: 1em;
+    left: 1.5em;
+}
+
+.panel-button {
+    cursor: pointer;
 }

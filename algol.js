@@ -7,6 +7,15 @@ window.onresize = () => {
     canvas.height = window.innerHeight;
 };
 
+let guiShown = true;
+document.getElementById("gui-toggle").onclick = () => {
+    guiShown = !guiShown;
+    let style = guiShown ? "block" : "none";
+    document.querySelectorAll(".panel").forEach((e) => {
+        e.style.display = style;
+    });
+}
+
 class Texture {
     constructor(width, height, fill=0) {
         this.width = width;
