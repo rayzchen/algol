@@ -11,9 +11,8 @@ window.onresize = () => {
 let guiShown = true;
 document.getElementById("gui-toggle").onclick = () => {
     guiShown = !guiShown;
-    let style = guiShown ? "flex" : "none";
     document.querySelectorAll(".panel").forEach((e) => {
-        e.style.display = style;
+        e.classList.toggle("panel-hidden");
     });
 }
 
@@ -117,7 +116,7 @@ const vertices = new Float32Array([
     -1.0, 1.0, 0.0
 ]);
 
-const iterationCount = 32;
+const iterationCount = 1;
 let generation = 0;
 async function main() {
     if (gl == null) {
