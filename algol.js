@@ -1,6 +1,7 @@
 /** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("gl-canvas");
 const gl = canvas.getContext("webgl2");
+const fpsCounter = document.getElementById("fps-counter");
 window.onresize = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -146,7 +147,20 @@ async function main() {
     gl.uniform2f(logicShader.location("screenSize"), canvas.width, canvas.height);
     gl.uniform1f(logicShader.location("rest"), 0.5);
 
-    function renderFrame() {
+    let then = 0;
+    let frames = [];
+    function renderFrame(now) {
+        if (then != 0) {
+            frames.push((now - then) * 0.001);
+        }
+        then = now;
+        let total = frames.reduce((prev, curr, _) => prev + curr, 0);
+        if (total > 1) {
+            let fps = frames.length / total;
+            fpsCounter.innerText = "FPS: " + fps.toFixed(1);
+            frames = [];
+        }
+
         logicShader.use();
         back.bindTexture();
         front.renderTo();
