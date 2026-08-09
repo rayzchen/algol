@@ -2,6 +2,7 @@
 const canvas = document.getElementById("gl-canvas");
 const gl = canvas.getContext("webgl2");
 const fpsCounter = document.getElementById("fps-counter");
+const generationCounter = document.getElementById("generation-counter");
 window.onresize = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -10,7 +11,7 @@ window.onresize = () => {
 let guiShown = true;
 document.getElementById("gui-toggle").onclick = () => {
     guiShown = !guiShown;
-    let style = guiShown ? "block" : "none";
+    let style = guiShown ? "flex" : "none";
     document.querySelectorAll(".panel").forEach((e) => {
         e.style.display = style;
     });
@@ -117,6 +118,7 @@ const vertices = new Float32Array([
 ]);
 
 const iterationCount = 32;
+let generation = 0;
 async function main() {
     if (gl == null) {
         alert("Unable to initialize WebGL");
@@ -161,6 +163,25 @@ async function main() {
     let then = 0;
     let frames = [];
     function renderFrame(now) {
+        for (let i = 0; i < iterationCount; i++) {
+            let temp = front;
+            front = back;
+            back = temp;
+
+            logicShader.use();
+            back.bindTexture();
+            front.renderTo();
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            generation++;
+        }
+
+        renderShader.use();
+        front.bindTexture();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        requestAnimationFrame(renderFrame);
+
         if (then != 0) {
             frames.push((now - then) * 0.001);
         }
@@ -172,23 +193,7 @@ async function main() {
             frames = [];
         }
 
-        for (let i = 0; i < iterationCount; i++) {
-            let temp = front;
-            front = back;
-            back = temp;
-
-            logicShader.use();
-            back.bindTexture();
-            front.renderTo();
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-        }
-
-        renderShader.use();
-        front.bindTexture();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-        requestAnimationFrame(renderFrame);
+        generationCounter.innerText = "Generation: " + generation;
     }
 
     requestAnimationFrame(renderFrame);

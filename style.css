@@ -10,6 +10,9 @@ body {
 
 .panel {
     position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
 }
 
 .panel p {
@@ -19,11 +22,13 @@ body {
 .left-panel {
     left: 1.5em;
     top: 1em;
+    align-items: flex-start;
 }
 
 .right-panel {
     right: 1.5em;
     top: 1em;
+    align-items: flex-end;
 }
 
 .panel-item {
