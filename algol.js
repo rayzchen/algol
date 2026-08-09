@@ -156,6 +156,7 @@ async function main() {
     logicShader.use();
     gl.uniform1i(logicShader.location("uTexture"), 0);
     gl.uniform1f(logicShader.location("rest"), 0.5);
+    gl.uniform2i(logicShader.location("mapSize"), canvas.width, canvas.height);
 
     let then = 0;
     let frames = [];
