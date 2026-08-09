@@ -116,6 +116,7 @@ const vertices = new Float32Array([
     -1.0, 1.0, 0.0
 ]);
 
+const iterationCount = 32;
 async function main() {
     if (gl == null) {
         alert("Unable to initialize WebGL");
@@ -143,8 +144,8 @@ async function main() {
     const renderShader = new Shader(vertexSource, renderFragSource);
     const logicShader = new Shader(vertexSource, logicFragSource);
 
-    let front = new Texture(canvas.width, canvas.height);
-    let back = new Texture(canvas.width, canvas.height, 0.4);
+    let front = new Texture(canvas.width, canvas.height, 0.37);
+    let back = new Texture(canvas.width, canvas.height);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -170,19 +171,21 @@ async function main() {
             frames = [];
         }
 
-        logicShader.use();
-        back.bindTexture();
-        front.renderTo();
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        for (let i = 0; i < iterationCount; i++) {
+            let temp = front;
+            front = back;
+            back = temp;
+
+            logicShader.use();
+            back.bindTexture();
+            front.renderTo();
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
 
         renderShader.use();
         front.bindTexture();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-        let temp = front;
-        front = back;
-        back = temp;
 
         requestAnimationFrame(renderFrame);
     }
