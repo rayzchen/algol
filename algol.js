@@ -152,9 +152,9 @@ async function main() {
 
     renderShader.use();
     gl.uniform1i(renderShader.location("uTexture"), 0);
+    gl.uniform2f(renderShader.location("screenSize"), canvas.width, canvas.height);
     logicShader.use();
     gl.uniform1i(logicShader.location("uTexture"), 0);
-    gl.uniform2f(logicShader.location("screenSize"), canvas.width, canvas.height);
     gl.uniform1f(logicShader.location("rest"), 0.5);
 
     let then = 0;

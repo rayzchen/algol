@@ -2,8 +2,8 @@
 precision highp float;
 
 uniform sampler2D uTexture;
+uniform vec2 screenSize;
 uniform float rest;
-in vec2 texCoord;
 out vec4 fragColor;
 
 vec3 hsv2rgb(vec3 c) {
@@ -13,7 +13,7 @@ vec3 hsv2rgb(vec3 c) {
 }
 
 void main() {
-    float pixel = texture(uTexture, texCoord).r;
+    float pixel = texture(uTexture, gl_FragCoord.xy / screenSize).r;
     vec3 hsv = vec3(mix(0.666, 0.333, pow(pixel, 2.0)), mix(0.7, 1.0, pixel), pixel);
     fragColor = vec4(hsv2rgb(hsv), 1.0);
 }

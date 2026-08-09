@@ -4,16 +4,15 @@ precision highp float;
 uniform sampler2D uTexture;
 uniform float rest;
 uniform float decay;
-uniform vec2 screenSize;
-in vec2 texCoord;
 out vec4 fragColor;
 
 void main() {
-    float current = texture(uTexture, texCoord).r;
+    ivec2 pos = ivec2(gl_FragCoord.xy);
+    float current = texelFetch(uTexture, pos, 0).r;
     float neighbours = 0.0;
-    for (float i = -1.0; i <= 1.0; i++) {
-        for (float j = -1.0; j <= 1.0; j++) {
-            float pixel = texture(uTexture, texCoord + vec2(i, j) / screenSize).r;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            float pixel = texelFetch(uTexture, pos + ivec2(i, j), 0).r;
             if (pixel >= rest) {
                 neighbours += 1.0;
             }
