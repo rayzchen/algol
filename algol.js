@@ -3,6 +3,8 @@ const canvas = document.getElementById("gl-canvas");
 const gl = canvas.getContext("webgl2");
 const fpsCounter = document.getElementById("fps-counter");
 const generationCounter = document.getElementById("generation-counter");
+const iterationSlider = document.getElementById("iteration-slider");
+
 window.onresize = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -116,7 +118,11 @@ const vertices = new Float32Array([
     -1.0, 1.0, 0.0
 ]);
 
-const iterationCount = 1;
+let iterationCount = 1;
+iterationSlider.oninput = () => {
+    iterationCount = iterationSlider.value;
+}
+
 let generation = 0;
 async function main() {
     if (gl == null) {
