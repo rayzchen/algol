@@ -9,6 +9,8 @@ const scaleLabel = document.getElementById("scale-label");
 const guiToggle = document.getElementById("gui-toggle");
 const pauseToggle = document.getElementById("pause-toggle");
 const stepButton = document.getElementById("step-button");
+const themeToggle = document.getElementById("theme-toggle");
+const themeLabel = document.getElementById("theme-label");
 
 class Texture {
     constructor(width, height, fill=0) {
@@ -101,12 +103,6 @@ class Shader {
     }
 }
 
-window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
-window.dispatchEvent(new Event("resize"));
-
 let guiShown = true;
 guiToggle.addEventListener("click", () => {
     guiShown = !guiShown;
@@ -115,17 +111,17 @@ guiToggle.addEventListener("click", () => {
     });
 });
 
-const vertices = new Float32Array([
-    -1.0, -1.0, 0.0,
-    1.0,-1.0, 0.0,
-    1.0, 1.0, 0.0,
-    -1.0,-1.0, 0.0,
-    1.0, 1.0, 0.0,
-    -1.0, 1.0, 0.0
-]);
-
 let simControls = {iterations: 1, generation: 0, fps: 10, pause: false, step: false};
 let frameSkipper = {frameCount: 0, current: 0};
+
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (simControls.pause) {
+        requestAnimationFrame(renderFrame);
+    }
+});
+window.dispatchEvent(new Event("resize"));
 
 pauseToggle.addEventListener("click", () => {
     simControls.pause = !simControls.pause;
@@ -141,6 +137,7 @@ stepButton.addEventListener("click", () => {
     if (!simControls.pause) {
         pauseToggle.click();
     }
+    simControls.pause = true;
     simControls.step = true;
     requestAnimationFrame(renderFrame);
 });
@@ -244,6 +241,9 @@ canvas.addEventListener("wheel", (e) => {
     }
 });
 
+const themes = ["Color", "B/W"];
+let currentTheme = 0;
+
 let renderFrame = (now) => {alert("GL not loaded yet");};
 async function main() {
     if (gl == null) {
@@ -255,6 +255,15 @@ async function main() {
     const vao = gl.createVertexArray();
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bindVertexArray(vao);
+
+    const vertices = new Float32Array([
+        -1.0, -1.0, 0.0,
+        1.0,-1.0, 0.0,
+        1.0, 1.0, 0.0,
+        -1.0,-1.0, 0.0,
+        1.0, 1.0, 0.0,
+        -1.0, 1.0, 0.0
+    ]);
 
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * vertices.BYTES_PER_ELEMENT, 0);
@@ -278,6 +287,8 @@ async function main() {
 
     renderShader.use();
     gl.uniform1i(renderShader.location("uTexture"), 0);
+    gl.uniform1f(renderShader.location("rest"), 0.5);
+    gl.uniform1f(renderShader.location("color"), 1.0);
     gl.uniform2f(renderShader.location("screenSize"), canvas.width, canvas.height);
     gl.uniform2i(renderShader.location("mapSize"), mapSize, mapSize);
 
@@ -285,6 +296,19 @@ async function main() {
     gl.uniform1i(logicShader.location("uTexture"), 0);
     gl.uniform1f(logicShader.location("rest"), 0.5);
     gl.uniform2i(logicShader.location("mapSize"), mapSize, mapSize);
+
+    themeToggle.addEventListener("click", () => {
+        currentTheme = (currentTheme + 1) % themes.length;
+        themeLabel.innerText = themes[currentTheme];
+        if (currentTheme == 0) {
+            gl.uniform1f(renderShader.location("color"), 1.0);
+        } else if (currentTheme == 1) {
+            gl.uniform1f(renderShader.location("color"), 0.0);
+        }
+        if (simControls.pause) {
+            requestAnimationFrame(renderFrame);
+        }
+    });
 
     function stepLogic() {
         let temp = front;
@@ -344,4 +368,4 @@ async function main() {
     requestAnimationFrame(renderFrame);
 }
 
-window.addEventListener("DOMContentLoaded", async () => await main(), false);
+await main();
