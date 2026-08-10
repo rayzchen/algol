@@ -129,15 +129,19 @@ let frameSkipper = {frameCount: 0, current: 0};
 pauseToggle.addEventListener("click", () => {
     simControls.pause = !simControls.pause;
     pauseToggle.innerText = (simControls.pause) ? "Play" : "Pause";
-    frameSkipper.frameCount = 0;
-    frameSkipper.current = 0;
-    simControls.step = true;
+    if (!simControls.pause) {
+        frameSkipper.frameCount = 0;
+        frameSkipper.current = 0;
+        simControls.step = true;
+        requestAnimationFrame(renderFrame);
+    }
 });
 stepButton.addEventListener("click", () => {
     if (!simControls.pause) {
         pauseToggle.click();
     }
     simControls.step = true;
+    requestAnimationFrame(renderFrame);
 });
 
 function updateSimSpeed() {
@@ -173,6 +177,19 @@ iterationSlider.addEventListener("input", () => {
 });
 
 window.addEventListener("keydown", (e) => {
+    if (e.key == "0") {
+        simControls.fps = 60;
+        simControls.iterations = 1;
+        updateSimSlider();
+        return;
+    } else if (e.key == " ") {
+        stepButton.click();
+        return;
+    } else if (e.key == "Enter") {
+        pauseToggle.click();
+        return;
+    }
+
     if (e.key == "=") {
         simControls.fps += 1;
     } else if (e.key == "-") {
@@ -209,6 +226,9 @@ canvas.addEventListener("mousemove", (e) => {
     if (e.buttons & 1) {
         mapView.x += e.movementX / mapView.scale;
         mapView.y -= e.movementY / mapView.scale;
+        if (simControls.pause) {
+            requestAnimationFrame(renderFrame);
+        }
     }
 });
 canvas.addEventListener("wheel", (e) => {
@@ -217,8 +237,12 @@ canvas.addEventListener("wheel", (e) => {
     mapView.scale = Math.min(Math.max(mapView.scale, scaleMin), scaleMax);
     mapView.x += e.offsetX * (-1 / before + 1 / mapView.scale);
     mapView.y += (canvas.height - e.offsetY) * (-1 / before + 1 / mapView.scale);
+    if (simControls.pause) {
+        requestAnimationFrame(renderFrame);
+    }
 });
 
+let renderFrame = (now) => {alert("GL not loaded yet");};
 async function main() {
     if (gl == null) {
         alert("Unable to initialize WebGL");
@@ -274,7 +298,7 @@ async function main() {
 
     let then = 0;
     let frames = [];
-    function renderFrame(now) {
+    renderFrame = (now) => {
         let delta = (now - then) * 0.001;
         if (then != 0) {
             frames.push(delta);
@@ -310,7 +334,9 @@ async function main() {
         gl.uniform1f(renderShader.location("scale"), mapView.scale);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-        requestAnimationFrame(renderFrame);
+        if (!simControls.pause) {
+            requestAnimationFrame(renderFrame);
+        }
     }
 
     requestAnimationFrame(renderFrame);
