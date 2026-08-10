@@ -5,6 +5,7 @@ const fpsCounter = document.getElementById("fps-counter");
 const generationCounter = document.getElementById("generation-counter");
 const iterationSlider = document.getElementById("iteration-slider");
 const speedLabel = document.getElementById("speed-label");
+const scaleLabel = document.getElementById("scale-label");
 const guiToggle = document.getElementById("gui-toggle");
 const pauseToggle = document.getElementById("pause-toggle");
 const stepButton = document.getElementById("step-button");
@@ -237,6 +238,7 @@ canvas.addEventListener("wheel", (e) => {
     mapView.scale = Math.min(Math.max(mapView.scale, scaleMin), scaleMax);
     mapView.x += e.offsetX * (-1 / before + 1 / mapView.scale);
     mapView.y += (canvas.height - e.offsetY) * (-1 / before + 1 / mapView.scale);
+    scaleLabel.innerText = (Math.log2(mapView.scale) + 1).toFixed(1);
     if (simControls.pause) {
         requestAnimationFrame(renderFrame);
     }

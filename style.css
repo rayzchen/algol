@@ -8,6 +8,14 @@ body {
     background-color: black;
 }
 
+#gl-canvas {
+    cursor: grab;
+}
+
+#gl-canvas:active {
+    cursor: grabbing;
+}
+
 .panel {
     position: absolute;
     display: flex;
