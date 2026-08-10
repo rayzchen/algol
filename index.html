@@ -7,16 +7,17 @@
 <body>
     <canvas id="gl-canvas" width="800" height="500"></canvas>
     <div class="panel left-panel panel-shown">
-        <div class="panel-item" id="fps-counter">FPS: 0</div>
+        <div class="panel-item">FPS: <span id="fps-counter">0</span></div>
     </div>
     <div class="panel right-panel">
         <div class="panel-item">
-            <p>Controls:</p>
-            <p>Click to drag around</p>
+            <p style="text-decoration: underline;">Controls:</p>
+            <p>Click+drag to move around the map</p>
+            <p>Use mouse wheel to zoom in and out</p>
             <input type="range" id="iteration-slider" name="iterations" min="1" max="32" value="1" step="1">
             <label for="iterations">Iterations</label>
         </div>
-        <div class="panel-item" id="generation-counter">Generation: 0</div>
+        <div class="panel-item">Generation: <span id="generation-counter">0</span></div>
     </div>
     <div class="bottom-panel panel-item panel-button" id="gui-toggle">Toggle GUI</div>
     <script src="algol.js" type="module"></script>
