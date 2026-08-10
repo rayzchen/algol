@@ -124,6 +124,28 @@ iterationSlider.oninput = () => {
 }
 
 let generation = 0;
+const mapSize = 1024;
+const scaleMin = 0.5;
+const scaleMax = 16;
+const scaleSteps = 5;
+let mapView = {x: 0, y: 0, scale: 2.0, drag: false};
+
+canvas.addEventListener("mousedown", () => {mapView.drag = true;});
+canvas.addEventListener("mouseup", () => {mapView.drag = false;});
+canvas.addEventListener("mousemove", (e) => {
+    if (e.buttons & 1) {
+        mapView.x += e.movementX / mapView.scale;
+        mapView.y -= e.movementY / mapView.scale;
+    }
+});
+canvas.addEventListener("wheel", (e) => {
+    let before = mapView.scale;
+    mapView.scale /= Math.pow(2, e.deltaY * 0.01 / scaleSteps);
+    mapView.scale = Math.min(Math.max(mapView.scale, scaleMin), scaleMax);
+    mapView.x += e.offsetX * (-1 / before + 1 / mapView.scale);
+    mapView.y += (canvas.height - e.offsetY) * (-1 / before + 1 / mapView.scale);
+});
+
 async function main() {
     if (gl == null) {
         alert("Unable to initialize WebGL");
@@ -151,8 +173,8 @@ async function main() {
     const renderShader = new Shader(vertexSource, renderFragSource);
     const logicShader = new Shader(vertexSource, logicFragSource);
 
-    let front = new Texture(canvas.width, canvas.height, 0.37);
-    let back = new Texture(canvas.width, canvas.height);
+    let front = new Texture(mapSize, mapSize, 0.37);
+    let back = new Texture(mapSize, mapSize);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -160,10 +182,12 @@ async function main() {
     renderShader.use();
     gl.uniform1i(renderShader.location("uTexture"), 0);
     gl.uniform2f(renderShader.location("screenSize"), canvas.width, canvas.height);
+    gl.uniform2i(renderShader.location("mapSize"), mapSize, mapSize);
+
     logicShader.use();
     gl.uniform1i(logicShader.location("uTexture"), 0);
     gl.uniform1f(logicShader.location("rest"), 0.5);
-    gl.uniform2i(logicShader.location("mapSize"), canvas.width, canvas.height);
+    gl.uniform2i(logicShader.location("mapSize"), mapSize, mapSize);
 
     let then = 0;
     let frames = [];
@@ -183,6 +207,9 @@ async function main() {
         renderShader.use();
         front.bindTexture();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(renderShader.location("center"), mapView.x, mapView.y);
+        gl.uniform1f(renderShader.location("scale"), mapView.scale);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         requestAnimationFrame(renderFrame);
