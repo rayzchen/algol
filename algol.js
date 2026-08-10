@@ -4,20 +4,8 @@ const gl = canvas.getContext("webgl2");
 const fpsCounter = document.getElementById("fps-counter");
 const generationCounter = document.getElementById("generation-counter");
 const iterationSlider = document.getElementById("iteration-slider");
+const speedLabel = document.getElementById("speed-label");
 const guiToggle = document.getElementById("gui-toggle");
-
-window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
-
-let guiShown = true;
-guiToggle.addEventListener("click", () => {
-    guiShown = !guiShown;
-    document.querySelectorAll(".panel").forEach((e) => {
-        e.classList.toggle("panel-hidden");
-    });
-});
 
 class Texture {
     constructor(width, height, fill=0) {
@@ -110,6 +98,20 @@ class Shader {
     }
 }
 
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+window.dispatchEvent(new Event("resize"));
+
+let guiShown = true;
+guiToggle.addEventListener("click", () => {
+    guiShown = !guiShown;
+    document.querySelectorAll(".panel").forEach((e) => {
+        e.classList.toggle("panel-hidden");
+    });
+});
+
 const vertices = new Float32Array([
     -1.0, -1.0, 0.0,
     1.0,-1.0, 0.0,
@@ -119,12 +121,25 @@ const vertices = new Float32Array([
     -1.0, 1.0, 0.0
 ]);
 
-let simControls = {iterations: 1, generation: 0};
+let simControls = {iterations: 1, generation: 0, fps: 5, pause: false};
+let frameSkipper = {frameCount: 0, current: 0};
 iterationSlider.addEventListener("input", () => {
-    simControls.iterations = iterationSlider.value;
+    if (iterationSlider.value >= 60) {
+        simControls.iterations = Math.floor((parseInt(iterationSlider.value) - 58) / 2);
+        simControls.fps = 60;
+        iterationSlider.value = simControls.iterations * 2 + 58;
+        speedLabel.innerText = simControls.iterations + "x";
+    } else {
+        simControls.iterations = 1;
+        simControls.fps = parseInt(iterationSlider.value) + 1;
+        frameSkipper.frameCount = 0;
+        frameSkipper.current = 0;
+        speedLabel.innerText = simControls.fps + "/s";
+    }
 });
+iterationSlider.dispatchEvent(new Event("input"));
 
-const mapSize = 512;
+const mapSize = 1024;
 const scaleMin = 0.5;
 const scaleMax = 16;
 const scaleSteps = 5;
@@ -151,8 +166,6 @@ async function main() {
         alert("Unable to initialize WebGL");
         return;
     }
-
-    window.dispatchEvent(new Event("resize"));
 
     const vbo = gl.createBuffer();
     const vao = gl.createVertexArray();
@@ -192,17 +205,40 @@ async function main() {
     let then = 0;
     let frames = [];
     function renderFrame(now) {
-        for (let i = 0; i < simControls.iterations; i++) {
-            let temp = front;
-            front = back;
-            back = temp;
-
-            logicShader.use();
-            back.bindTexture();
-            front.renderTo();
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-            simControls.generation++;
+        let delta = (now - then) * 0.001;
+        if (then != 0) {
+            frames.push(delta);
         }
+        then = now;
+        let total = frames.reduce((prev, curr, _) => prev + curr, 0);
+        if (total > 1) {
+            let fps = frames.length / total;
+            fpsCounter.innerText = fps.toFixed(1);
+            frames = [];
+        }
+
+        let skipFrame = false;
+        frameSkipper.current++;
+        if (frameSkipper.current / 60 * simControls.fps < frameSkipper.frameCount) {
+            skipFrame = true;
+        }
+
+        if (!(simControls.pause || skipFrame)) {
+            frameSkipper.frameCount++;
+
+            for (let i = 0; i < simControls.iterations; i++) {
+                let temp = front;
+                front = back;
+                back = temp;
+
+                logicShader.use();
+                back.bindTexture();
+                front.renderTo();
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                simControls.generation++;
+            }
+        }
+        generationCounter.innerText = simControls.generation;
 
         renderShader.use();
         front.bindTexture();
@@ -213,19 +249,6 @@ async function main() {
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         requestAnimationFrame(renderFrame);
-
-        if (then != 0) {
-            frames.push((now - then) * 0.001);
-        }
-        then = now;
-        let total = frames.reduce((prev, curr, _) => prev + curr, 0);
-        if (total > 1) {
-            let fps = frames.length / total;
-            fpsCounter.innerText = fps.toFixed(1);
-            frames = [];
-        }
-
-        generationCounter.innerText = simControls.generation;
     }
 
     requestAnimationFrame(renderFrame);

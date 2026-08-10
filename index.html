@@ -14,12 +14,16 @@
             <p style="text-decoration: underline;">Controls:</p>
             <p>Click+drag to move around the map</p>
             <p>Use mouse wheel to zoom in and out</p>
-            <input type="range" id="iteration-slider" name="iterations" min="1" max="32" value="1" step="1">
+            <input type="range" id="iteration-slider" name="iterations" min="0" max="120" value="9" list="iteration-detents">
+            <datalist id="iteration-detents">
+                <option value="60">
+            </datalist>
             <label for="iterations">Iterations</label>
+            <p>Simulation speed: <span id="speed-label"></span></p>
         </div>
         <div class="panel-item">Generation: <span id="generation-counter">0</span></div>
     </div>
     <div class="bottom-panel panel-item panel-button" id="gui-toggle">Toggle GUI</div>
-    <script src="algol.js" type="module"></script>
+    <script src="algol.js"></script>
 </body>
 </html>
