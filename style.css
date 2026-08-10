@@ -5,6 +5,7 @@ body {
     overflow: hidden;
     font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
     color: white;
+    background-color: black;
 }
 
 .panel {
@@ -59,10 +60,9 @@ body {
     display: none;
 }
 
-#gl-canvas {
-    opacity: 1;
-    transition-property: opacity;
-    transition-duration: 0.5s;
+.panel-row {
+    display: flex;
+    gap: 0.5em;
 }
 
 .slider-container {
@@ -72,10 +72,6 @@ body {
 
 @starting-style {
     .panel:not(.panel-hidden) {
-        opacity: 0;
-    }
-
-    #gl-canvas {
         opacity: 0;
     }
 }

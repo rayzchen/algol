@@ -6,6 +6,8 @@ const generationCounter = document.getElementById("generation-counter");
 const iterationSlider = document.getElementById("iteration-slider");
 const speedLabel = document.getElementById("speed-label");
 const guiToggle = document.getElementById("gui-toggle");
+const pauseToggle = document.getElementById("pause-toggle");
+const stepButton = document.getElementById("step-button");
 
 class Texture {
     constructor(width, height, fill=0) {
@@ -121,8 +123,22 @@ const vertices = new Float32Array([
     -1.0, 1.0, 0.0
 ]);
 
-let simControls = {iterations: 1, generation: 0, fps: 10, pause: false};
+let simControls = {iterations: 1, generation: 0, fps: 10, pause: false, step: false};
 let frameSkipper = {frameCount: 0, current: 0};
+
+pauseToggle.addEventListener("click", () => {
+    simControls.pause = !simControls.pause;
+    pauseToggle.innerText = (simControls.pause) ? "Play" : "Pause";
+    frameSkipper.frameCount = 0;
+    frameSkipper.current = 0;
+    simControls.step = true;
+});
+stepButton.addEventListener("click", () => {
+    if (!simControls.pause) {
+        pauseToggle.click();
+    }
+    simControls.step = true;
+});
 
 function updateSimSpeed() {
     if (simControls.fps == 60) {
@@ -244,6 +260,18 @@ async function main() {
     gl.uniform1f(logicShader.location("rest"), 0.5);
     gl.uniform2i(logicShader.location("mapSize"), mapSize, mapSize);
 
+    function stepLogic() {
+        let temp = front;
+        front = back;
+        back = temp;
+
+        logicShader.use();
+        back.bindTexture();
+        front.renderTo();
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        simControls.generation++;
+    }
+
     let then = 0;
     let frames = [];
     function renderFrame(now) {
@@ -265,18 +293,12 @@ async function main() {
 
         if (!(simControls.pause || skipFrame)) {
             frameSkipper.frameCount += 1 / simControls.fps;
-
             for (let i = 0; i < simControls.iterations; i++) {
-                let temp = front;
-                front = back;
-                back = temp;
-
-                logicShader.use();
-                back.bindTexture();
-                front.renderTo();
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-                simControls.generation++;
+                stepLogic();
             }
+        } else if (simControls.step) {
+            stepLogic();
+            simControls.step = false;
         }
         generationCounter.innerText = simControls.generation;
 
