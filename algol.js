@@ -257,16 +257,16 @@ async function main() {
     gl.bindVertexArray(vao);
 
     const vertices = new Float32Array([
-        -1.0, -1.0, 0.0,
-        1.0,-1.0, 0.0,
-        1.0, 1.0, 0.0,
-        -1.0,-1.0, 0.0,
-        1.0, 1.0, 0.0,
-        -1.0, 1.0, 0.0
+        -1.0, -1.0,
+        1.0,-1.0,
+        1.0, 1.0,
+        -1.0,-1.0,
+        1.0, 1.0,
+        -1.0, 1.0
     ]);
 
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * vertices.BYTES_PER_ELEMENT, 0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 2 * vertices.BYTES_PER_ELEMENT, 0);
     gl.enableVertexAttribArray(0);
 
     const vertexResponse = await fetch("vertex.glsl");
