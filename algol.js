@@ -58,6 +58,77 @@ class Texture {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.viewport(0, 0, this.width, this.height);
     }
+
+    loadPixels(data) {
+        const pixels = new Uint8Array(this.width * this.height);
+        const startX = Math.floor((this.width - data[0].length) / 2);
+        const startY = Math.floor((this.width - data.length) / 2);
+        for (let y = 0; y < data.length; y++) {
+            for (let x = 0; x < data[0].length; x++) {
+                pixels[(data.length - 1 - y + startY) * this.width + x + startX] = data[y][x];
+            }
+        }
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.R8,
+            this.width,
+            this.height,
+            0,
+            gl.RED,
+            gl.UNSIGNED_BYTE,
+            pixels
+        );
+    }
+}
+
+async function loadRLE(url) {
+    const response = await fetch(url);
+    const text = await response.text();
+    const lines = text.split(/\r?\n/);
+    while (lines[0][0] == "#") {
+        lines.shift();
+    }
+    const header = lines.shift().match(/^x = (\d+), y = (\d+), rule = (.*)/);
+    const data = new Uint8Array(header[1] * header[2]);
+    let curr = 0;
+    let y = 0;
+    while (true) {
+        let length = 1;
+        let run = lines[0].match(/^\d+/);
+        if (run) {
+            length = parseInt(run[0]);
+            lines[0] = lines[0].replace(/^\d+/, "");
+        }
+        let char = lines[0][0];
+        lines[0] = lines[0].slice(1);
+        if (char == "$") {
+            y += length;
+            curr = 0;
+        } else if (char == "!") {
+            y = header[2];
+            break;
+        } else if (char == "b") {
+            curr += length;
+        } else {
+            for (let i = 0; i < length; i++) {
+                if (curr >= header[1]) {
+                    throw new Error("out of bounds");
+                }
+                data[y * header[1] + curr] = 255;
+                curr++;
+            }
+        }
+        if (!lines[0]) {
+            lines.shift();
+        }
+    }
+    let grid = [];
+    for (let y = 0; y < header[2]; y++) {
+        grid.push(data.slice(y * header[1], (y + 1) * header[1]));
+    }
+    return grid;
 }
 
 class Shader {
@@ -212,18 +283,23 @@ window.addEventListener("keydown", (e) => {
     updateSimSlider();
 });
 
-const mapSize = 1024;
+const mapSize = 2048;
 const scaleMin = 0.5;
 const scaleMax = 16;
 const scaleSteps = 5;
 let mapView = {x: 0, y: 0, scale: 2.0, drag: false};
+function resetView() {
+    mapView.x = mapSize / 2 - canvas.width / 2 / mapView.scale;
+    mapView.y = mapSize / 2 - canvas.height / 2 / mapView.scale;
+}
+resetView();
 
 canvas.addEventListener("mousedown", () => {mapView.drag = true;});
 canvas.addEventListener("mouseup", () => {mapView.drag = false;});
 canvas.addEventListener("mousemove", (e) => {
     if (e.buttons & 1) {
-        mapView.x += e.movementX / mapView.scale;
-        mapView.y -= e.movementY / mapView.scale;
+        mapView.x -= e.movementX / mapView.scale;
+        mapView.y += e.movementY / mapView.scale;
         if (simControls.pause) {
             requestAnimationFrame(renderFrame);
         }
@@ -233,8 +309,8 @@ canvas.addEventListener("wheel", (e) => {
     let before = mapView.scale;
     mapView.scale /= Math.pow(2, e.deltaY * 0.01 / scaleSteps);
     mapView.scale = Math.min(Math.max(mapView.scale, scaleMin), scaleMax);
-    mapView.x += e.offsetX * (-1 / before + 1 / mapView.scale);
-    mapView.y += (canvas.height - e.offsetY) * (-1 / before + 1 / mapView.scale);
+    mapView.x += e.offsetX * (1 / before - 1 / mapView.scale);
+    mapView.y += (canvas.height - e.offsetY) * (1 / before - 1 / mapView.scale);
     scaleLabel.innerText = (Math.log2(mapView.scale) + 1).toFixed(1);
     if (simControls.pause) {
         requestAnimationFrame(renderFrame);
@@ -281,6 +357,20 @@ async function main() {
 
     let front = new Texture(mapSize, mapSize, 0.37);
     let back = new Texture(mapSize, mapSize);
+
+    document.querySelectorAll(".loader").forEach((e) => {
+        e.addEventListener("click", () => {
+            if (!simControls.pause) {
+                pauseToggle.click();
+            }
+            let name = e.innerText.match(/Load (.*)/)[1];
+            loadRLE("patterns/" + name + ".rle").then((data) => {
+                front.loadPixels(data);
+                resetView();
+                requestAnimationFrame(renderFrame);
+            });
+        });
+    });
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);

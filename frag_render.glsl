@@ -17,7 +17,7 @@ vec3 hsv2rgb(vec3 c) {
 }
 
 void main() {
-    vec2 texCoord = (gl_FragCoord.xy / scale - center) / vec2(mapSize);
+    vec2 texCoord = (gl_FragCoord.xy / scale + center) / vec2(mapSize);
     float pixel = texture(uTexture, texCoord).r;
     vec3 hsv = vec3(mix(0.666, 0.333, pow(pixel, 2.0)), mix(0.7, 1.0, pixel), pixel);
     vec3 mixed = color * hsv2rgb(hsv) + (1.0 - color) * vec3(pixel >= rest);
