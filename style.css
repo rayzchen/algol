@@ -65,6 +65,11 @@ body {
     transition-duration: 0.5s;
 }
 
+.slider-container {
+    display: flex;
+    align-items: center;
+}
+
 @starting-style {
     .panel:not(.panel-hidden) {
         opacity: 0;

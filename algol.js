@@ -121,23 +121,65 @@ const vertices = new Float32Array([
     -1.0, 1.0, 0.0
 ]);
 
-let simControls = {iterations: 1, generation: 0, fps: 5, pause: false};
+let simControls = {iterations: 1, generation: 0, fps: 10, pause: false};
 let frameSkipper = {frameCount: 0, current: 0};
-iterationSlider.addEventListener("input", () => {
-    if (iterationSlider.value >= 60) {
-        simControls.iterations = Math.floor((parseInt(iterationSlider.value) - 58) / 2);
-        simControls.fps = 60;
-        iterationSlider.value = simControls.iterations * 2 + 58;
+
+function updateSimSpeed() {
+    if (simControls.fps == 60) {
         speedLabel.innerText = simControls.iterations + "x";
     } else {
-        simControls.iterations = 1;
-        simControls.fps = parseInt(iterationSlider.value) + 1;
-        frameSkipper.frameCount = 0;
-        frameSkipper.current = 0;
         speedLabel.innerText = simControls.fps + "/s";
     }
+}
+
+function updateSimSlider() {
+    if (simControls.fps == 60) {
+        iterationSlider.value = Math.sqrt((simControls.iterations - 1) / 31) * 110 + 90;
+    } else {
+        iterationSlider.value = Math.sqrt((simControls.fps - 1) / 58) * 90;
+    }
+    updateSimSpeed();
+}
+
+updateSimSlider();
+
+iterationSlider.addEventListener("input", () => {
+    if (iterationSlider.value >= 95) {
+        let value = (iterationSlider.value - 95) / 105;
+        simControls.iterations = Math.round(Math.pow(value, 2) * 31) + 1;
+        simControls.fps = 60;
+    } else {
+        let value = iterationSlider.value / 95;
+        simControls.iterations = 1;
+        simControls.fps = Math.round(Math.pow(value, 2) * 58) + 1;
+    }
+    updateSimSpeed();
 });
-iterationSlider.dispatchEvent(new Event("input"));
+
+window.addEventListener("keydown", (e) => {
+    if (e.key == "=") {
+        simControls.fps += 1;
+    } else if (e.key == "-") {
+        simControls.fps -= 1;
+    } else {
+        return;
+    }
+
+    if (simControls.fps == 0) {
+        simControls.fps = 1;
+        return;
+    } else if (simControls.fps == 61) {
+        simControls.fps = 60;
+        if (simControls.iterations == 32) {
+            return;
+        }
+        simControls.iterations += 1;
+    } else if (simControls.fps == 59 && e.key == "-" && simControls.iterations != 1) {
+        simControls.fps = 60;
+        simControls.iterations -= 1;
+    }
+    updateSimSlider();
+});
 
 const mapSize = 1024;
 const scaleMin = 0.5;
@@ -218,13 +260,11 @@ async function main() {
         }
 
         let skipFrame = false;
-        frameSkipper.current++;
-        if (frameSkipper.current / 60 * simControls.fps < frameSkipper.frameCount) {
-            skipFrame = true;
-        }
+        frameSkipper.current += 1 / 60;
+        skipFrame = frameSkipper.current < frameSkipper.frameCount + 1 / simControls.fps;
 
         if (!(simControls.pause || skipFrame)) {
-            frameSkipper.frameCount++;
+            frameSkipper.frameCount += 1 / simControls.fps;
 
             for (let i = 0; i < simControls.iterations; i++) {
                 let temp = front;
