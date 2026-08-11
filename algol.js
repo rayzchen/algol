@@ -176,6 +176,7 @@ const stepButton = document.getElementById("step-button");
 const themeToggle = document.getElementById("theme-toggle");
 const themeLabel = document.getElementById("theme-label");
 const wrapCheckbox = document.getElementById("wrap-checkbox");
+const resetButton = document.getElementById("reset-button");
 
 document.querySelectorAll(".input-container input").forEach((e) => {
     e.setAttribute("tabindex", "-1");
@@ -322,6 +323,13 @@ canvas.addEventListener("wheel", (e) => {
     mapView.x += e.offsetX * (1 / before - 1 / mapView.scale);
     mapView.y += (canvas.height - e.offsetY) * (1 / before - 1 / mapView.scale);
     scaleLabel.innerText = (Math.log2(mapView.scale) + 1).toFixed(1);
+    if (simControls.pause) {
+        requestAnimationFrame(renderFrame);
+    }
+});
+
+resetButton.addEventListener("click", () => {
+    resetView();
     if (simControls.pause) {
         requestAnimationFrame(renderFrame);
     }
