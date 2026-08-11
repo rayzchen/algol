@@ -1,16 +1,6 @@
 /** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("gl-canvas");
 const gl = canvas.getContext("webgl2");
-const fpsCounter = document.getElementById("fps-counter");
-const generationCounter = document.getElementById("generation-counter");
-const iterationSlider = document.getElementById("iteration-slider");
-const speedLabel = document.getElementById("speed-label");
-const scaleLabel = document.getElementById("scale-label");
-const guiToggle = document.getElementById("gui-toggle");
-const pauseToggle = document.getElementById("pause-toggle");
-const stepButton = document.getElementById("step-button");
-const themeToggle = document.getElementById("theme-toggle");
-const themeLabel = document.getElementById("theme-label");
 
 class Texture {
     constructor(width, height, fill=0) {
@@ -173,6 +163,26 @@ class Shader {
         return gl.getUniformLocation(this.program, name);
     }
 }
+
+// GUI elements
+const fpsCounter = document.getElementById("fps-counter");
+const generationCounter = document.getElementById("generation-counter");
+const iterationSlider = document.getElementById("iteration-slider");
+const speedLabel = document.getElementById("speed-label");
+const scaleLabel = document.getElementById("scale-label");
+const guiToggle = document.getElementById("gui-toggle");
+const pauseToggle = document.getElementById("pause-toggle");
+const stepButton = document.getElementById("step-button");
+const themeToggle = document.getElementById("theme-toggle");
+const themeLabel = document.getElementById("theme-label");
+const wrapCheckbox = document.getElementById("wrap-checkbox");
+
+document.querySelectorAll(".input-container input").forEach((e) => {
+    e.setAttribute("tabindex", "-1");
+    e.addEventListener("click", () => {
+        document.activeElement.blur();
+    });
+});
 
 let guiShown = true;
 guiToggle.addEventListener("click", () => {
@@ -399,6 +409,18 @@ async function main() {
             requestAnimationFrame(renderFrame);
         }
     });
+
+    wrapCheckbox.addEventListener("input", () => {
+        let wrap = (wrapCheckbox.checked) ? 1 : 0;
+        logicShader.use();
+        gl.uniform1i(logicShader.location("wrap"), wrap);
+        renderShader.use();
+        gl.uniform1f(renderShader.location("wrap"), wrap);
+        if (simControls.pause) {
+            requestAnimationFrame(renderFrame);
+        }
+    });
+    wrapCheckbox.dispatchEvent(new Event("input"));
 
     function stepLogic() {
         let temp = front;

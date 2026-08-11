@@ -8,6 +8,7 @@ uniform vec2 center;
 uniform float scale;
 uniform float rest;
 uniform float color;
+uniform float wrap;
 out vec4 fragColor;
 
 vec3 hsv2rgb(vec3 c) {
@@ -18,8 +19,11 @@ vec3 hsv2rgb(vec3 c) {
 
 void main() {
     vec2 texCoord = (gl_FragCoord.xy / scale + center) / vec2(mapSize);
+    float topRight = 2.0 - step(-1.0, -texCoord.x) - step(-1.0, -texCoord.y);
+    float bottomLeft = step(0.0, -texCoord.x) + step(0.0, -texCoord.y);
+    float outside = min(1.0, topRight + bottomLeft) * (1.0 - wrap);
     float pixel = texture(uTexture, texCoord).r;
     vec3 hsv = vec3(mix(0.666, 0.333, pow(pixel, 2.0)), mix(0.7, 1.0, pixel), pixel);
     vec3 mixed = color * hsv2rgb(hsv) + (1.0 - color) * vec3(pixel >= rest);
-    fragColor = vec4(mixed, 1.0);
+    fragColor = vec4(mixed * (1.0 - outside) + vec3(0.1) * outside, 1.0);
 }

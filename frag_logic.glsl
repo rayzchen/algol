@@ -4,7 +4,7 @@ precision highp float;
 uniform sampler2D uTexture;
 uniform ivec2 mapSize;
 uniform float rest;
-uniform float decay;
+uniform int wrap;
 out vec4 fragColor;
 
 int when_eq(int x, int y) { return 1 - abs(sign(x - y)); }
@@ -20,21 +20,21 @@ void main() {
     float current = texelFetch(uTexture, p, 0).r;
     float neighbours = 0.0;
 
-    int xn = branch(when_eq(p.x, 0), mapSize.x - 1, p.x - 1);
-    int yn = branch(when_eq(p.y, 0), mapSize.y - 1, p.y - 1);
-    int xp = branch(when_eq(p.x, mapSize.x - 1), 0, p.x + 1);
-    int yp = branch(when_eq(p.y, mapSize.y - 1), 0, p.y + 1);
+    int xn = branch(wrap * when_eq(p.x, 0), mapSize.x - 1, p.x - 1);
+    int yn = branch(wrap * when_eq(p.y, 0), mapSize.y - 1, p.y - 1);
+    int xp = branch(wrap * when_eq(p.x, mapSize.x - 1), 0, p.x + 1);
+    int yp = branch(wrap * when_eq(p.y, mapSize.y - 1), 0, p.y + 1);
 
-    neighbours += float(texelFetch(uTexture, ivec2(xn, yn), 0).r >= rest);
-    neighbours += float(texelFetch(uTexture, ivec2(p.x, yn), 0).r >= rest);
-    neighbours += float(texelFetch(uTexture, ivec2(xp, yn), 0).r >= rest);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(xn, yn), 0).r);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(p.x, yn), 0).r);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(xp, yn), 0).r);
 
-    neighbours += float(texelFetch(uTexture, ivec2(xn, p.y), 0).r >= rest);
-    neighbours += float(texelFetch(uTexture, ivec2(xp, p.y), 0).r >= rest);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(xn, p.y), 0).r);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(xp, p.y), 0).r);
 
-    neighbours += float(texelFetch(uTexture, ivec2(xn, yp), 0).r >= rest);
-    neighbours += float(texelFetch(uTexture, ivec2(p.x, yp), 0).r >= rest);
-    neighbours += float(texelFetch(uTexture, ivec2(xp, yp), 0).r >= rest);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(xn, yp), 0).r);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(p.x, yp), 0).r);
+    neighbours += step(rest, texelFetch(uTexture, ivec2(xp, yp), 0).r);
 
     float cond2 = when_eq(neighbours, 2.0);
     float cond3 = when_eq(neighbours, 3.0);

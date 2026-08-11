@@ -16,12 +16,16 @@
             <p>Use mouse wheel to zoom in and out</p>
             <p>[+]/[-]: Change simulation speed</p>
             <p>Current scale: <span id="scale-label">2.0</span></p>
-            <div class="slider-container">
+            <div class="input-container">
                 <input type="range" id="iteration-slider" name="iterations" min="0" max="200" value="52" list="iteration-detents">
                 <datalist id="iteration-detents">
                     <option value="60">
                 </datalist>
                 <label for="iterations">Speed: <span id="speed-label"></span></label>
+            </div>
+            <div class="input-container">
+                <input type="checkbox" id="wrap-checkbox" name="wrap" checked>
+                <label for="checkbox">Wrap grid</label>
             </div>
         </div>
         <div class="panel-row">
