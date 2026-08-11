@@ -388,7 +388,6 @@ async function main() {
     renderShader.use();
     gl.uniform1i(renderShader.location("uTexture"), 0);
     gl.uniform1f(renderShader.location("rest"), 0.5);
-    gl.uniform1f(renderShader.location("color"), 1.0);
     gl.uniform2f(renderShader.location("screenSize"), canvas.width, canvas.height);
     gl.uniform2i(renderShader.location("mapSize"), mapSize, mapSize);
 
@@ -400,6 +399,7 @@ async function main() {
     themeToggle.addEventListener("click", () => {
         currentTheme = (currentTheme + 1) % themes.length;
         themeLabel.innerText = themes[currentTheme];
+        renderShader.use();
         if (currentTheme == 0) {
             gl.uniform1f(renderShader.location("color"), 1.0);
         } else if (currentTheme == 1) {
@@ -409,6 +409,8 @@ async function main() {
             requestAnimationFrame(renderFrame);
         }
     });
+    currentTheme = -1;
+    themeToggle.dispatchEvent(new Event("click"));
 
     wrapCheckbox.addEventListener("input", () => {
         let wrap = (wrapCheckbox.checked) ? 1 : 0;
