@@ -264,10 +264,10 @@ window.addEventListener("keydown", (e) => {
         pauseToggle.click();
         return;
     } else if (e.key == "+") {
-        zoomMap(-1, canvas.width / 2, canvas.height / 2);
+        zoomMap(1, canvas.width / 2, canvas.height / 2);
         return;
     } else if (e.key == "_") {
-        zoomMap(1, canvas.width / 2, canvas.height / 2);
+        zoomMap(-1, canvas.width / 2, canvas.height / 2);
         return;
     }
 
@@ -297,9 +297,10 @@ window.addEventListener("keydown", (e) => {
 
 const mapSize = 2048;
 const scaleMin = 0.5;
-const scaleMax = 16;
-const scaleSteps = 5;
-let mapView = {x: 0, y: 0, scale: 2.0, drag: false};
+const zoomMin = 0.0;
+const zoomMax = 5.0;
+const zoomSteps = 5;
+let mapView = {x: 0, y: 0, scale: 2.0, zoom: 2.0, drag: false};
 
 let minimapTimeout = null;
 function redrawMinimap() {
@@ -399,18 +400,20 @@ canvas.addEventListener("mousemove", (e) => {
 
 function zoomMap(steps, centerX, centerY) {
     let before = mapView.scale;
-    mapView.scale /= Math.pow(2, steps / scaleSteps);
-    mapView.scale = Math.min(Math.max(mapView.scale, scaleMin), scaleMax);
+    mapView.zoom += steps / zoomSteps;
+    mapView.zoom = Math.min(Math.max(mapView.zoom, zoomMin), zoomMax);
+    mapView.scale = scaleMin * Math.pow(2, mapView.zoom);
+
     mapView.x += centerX * (1 / before - 1 / mapView.scale);
     mapView.y += (canvas.height - centerY) * (1 / before - 1 / mapView.scale);
-    scaleLabel.innerText = (Math.log2(mapView.scale) + 1).toFixed(1);
+    scaleLabel.innerText = mapView.zoom.toFixed(1);
     if (simControls.pause) {
         requestAnimationFrame(renderFrame);
     }
     redrawMinimap();
 }
 canvas.addEventListener("wheel", (e) => {
-    zoomMap(e.deltaY * 0.01, e.offsetX, e.offsetY);
+    zoomMap(-e.deltaY * 0.01, e.offsetX, e.offsetY);
 });
 
 resetButton.addEventListener("click", () => {
