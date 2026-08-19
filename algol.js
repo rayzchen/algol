@@ -179,6 +179,7 @@ const stepButton = document.getElementById("step-button");
 const themeToggle = document.getElementById("theme-toggle");
 const themeLabel = document.getElementById("theme-label");
 const wrapCheckbox = document.getElementById("wrap-checkbox");
+const minimapCheckbox = document.getElementById("minimap-checkbox");
 const resetButton = document.getElementById("reset-button");
 
 document.querySelectorAll(".input-container input").forEach((e) => {
@@ -296,6 +297,10 @@ let mapView = {x: 0, y: 0, scale: 2.0, drag: false};
 
 let minimapTimeout = null;
 function redrawMinimap() {
+    if (!minimapCheckbox.checked) {
+        return;
+    }
+
     minimapCanvas.classList.remove("minimap-hidden");
     const size = minimapCanvas.width;
     ctx.clearRect(0, 0, size, size);
@@ -329,15 +334,21 @@ function redrawMinimap() {
         }
     }
 
-    if (minimapTimeout != null) {
-        clearTimeout(minimapTimeout);
-    }
-    minimapTimeout = setTimeout(hideMinimap, 2000);
+    clearTimeout(minimapTimeout);
+    minimapTimeout = setTimeout(() => {
+        minimapCanvas.classList.add("minimap-hidden");
+    }, 2000);
 }
 
-function hideMinimap() {
-    minimapCanvas.classList.add("minimap-hidden");
-}
+minimapCheckbox.addEventListener("input", () => {
+    minimapCanvas.classList.toggle("minimap-disabled");
+    if (minimapCheckbox.checked) {
+        redrawMinimap();
+    } else {
+        clearTimeout(minimapTimeout);
+        minimapCanvas.classList.remove("minimap-hidden");
+    }
+});
 
 window.addEventListener("resize", () => {
     canvas.width = window.innerWidth;

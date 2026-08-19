@@ -36,6 +36,12 @@ body {
     display: none;
 }
 
+.minimap-disabled {
+    opacity: 0 !important;
+    display: none !important;
+    transition: none !important;
+}
+
 .panel {
     position: absolute;
     display: flex;
