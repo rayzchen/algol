@@ -351,8 +351,14 @@ minimapCheckbox.addEventListener("input", () => {
 });
 
 window.addEventListener("resize", () => {
+    let centerX = mapView.x + canvas.width / 2 / mapView.scale;
+    let centerY = mapView.y + canvas.height / 2 / mapView.scale;
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    mapView.x = centerX - canvas.width / 2 / mapView.scale;
+    mapView.y = centerY - canvas.height / 2 / mapView.scale;
 
     let size = (canvas.width + canvas.height) / 8;
     minimapCanvas.width = size;
