@@ -432,7 +432,7 @@ async function main() {
     });
     wrapCheckbox.dispatchEvent(new Event("input"));
 
-    function stepLogic() {
+    let stepLogic = () => {
         let temp = front;
         front = back;
         back = temp;
@@ -442,7 +442,7 @@ async function main() {
         front.renderTo();
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         simControls.generation++;
-    }
+    };
 
     let then = 0;
     let frames = [];
