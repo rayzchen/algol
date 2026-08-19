@@ -1,6 +1,9 @@
 /** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("gl-canvas");
 const gl = canvas.getContext("webgl2");
+/** @type {HTMLCanvasElement} */
+const minimapCanvas = document.getElementById("minimap-canvas");
+const ctx = minimapCanvas.getContext("2d");
 
 class Texture {
     constructor(width, height, fill=0) {
@@ -196,15 +199,6 @@ guiToggle.addEventListener("click", () => {
 let simControls = {iterations: 1, generation: 0, fps: 10, pause: false, step: false};
 let frameSkipper = {frameCount: 0, current: 0};
 
-window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
-    }
-});
-window.dispatchEvent(new Event("resize"));
-
 pauseToggle.addEventListener("click", () => {
     simControls.pause = !simControls.pause;
     pauseToggle.innerText = (simControls.pause) ? "Play" : "Pause";
@@ -299,9 +293,71 @@ const scaleMin = 0.5;
 const scaleMax = 16;
 const scaleSteps = 5;
 let mapView = {x: 0, y: 0, scale: 2.0, drag: false};
+
+let minimapTimeout = null;
+function redrawMinimap() {
+    minimapCanvas.classList.remove("minimap-hidden");
+    const size = minimapCanvas.width;
+    ctx.clearRect(0, 0, size, size);
+
+    ctx.fillStyle = "#0003";
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.strokeStyle = "white";
+    ctx.strokeRect(0, 0, size, size);
+
+    const factor = size / mapSize;
+    const refs = (wrapCheckbox.checked) ? [-1, 0, 1] : [0];
+    for (const i of refs) {
+        for (const j of refs) {
+            const path = new Path2D();
+            const width = canvas.width / mapView.scale * factor;
+            const height = canvas.height / mapView.scale * factor;
+            let x, y;
+            if (wrapCheckbox.checked) {
+                x = (mapView.x * factor % size) + i * size;
+                y = size - (mapView.y * factor % size) - height + j * size;
+            } else {
+                x = (mapView.x * factor) + i * size;
+                y = size - (mapView.y * factor) - height + j * size;
+            }
+            path.rect(x, y, width, height);
+
+            ctx.fillStyle = "#3337";
+            ctx.fill(path);
+            ctx.stroke(path);
+        }
+    }
+
+    if (minimapTimeout != null) {
+        clearTimeout(minimapTimeout);
+    }
+    minimapTimeout = setTimeout(hideMinimap, 2000);
+}
+
+function hideMinimap() {
+    minimapCanvas.classList.add("minimap-hidden");
+}
+
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let size = (canvas.width + canvas.height) / 8;
+    minimapCanvas.width = size;
+    minimapCanvas.height = size;
+
+    if (simControls.pause) {
+        requestAnimationFrame(renderFrame);
+    }
+    redrawMinimap();
+});
+window.dispatchEvent(new Event("resize"));
+
 function resetView() {
     mapView.x = mapSize / 2 - canvas.width / 2 / mapView.scale;
     mapView.y = mapSize / 2 - canvas.height / 2 / mapView.scale;
+    redrawMinimap();
 }
 resetView();
 
@@ -314,6 +370,7 @@ canvas.addEventListener("mousemove", (e) => {
         if (simControls.pause) {
             requestAnimationFrame(renderFrame);
         }
+        redrawMinimap();
     }
 });
 canvas.addEventListener("wheel", (e) => {
@@ -326,6 +383,7 @@ canvas.addEventListener("wheel", (e) => {
     if (simControls.pause) {
         requestAnimationFrame(renderFrame);
     }
+    redrawMinimap();
 });
 
 resetButton.addEventListener("click", () => {
@@ -429,6 +487,7 @@ async function main() {
         if (simControls.pause) {
             requestAnimationFrame(renderFrame);
         }
+        redrawMinimap();
     });
     wrapCheckbox.dispatchEvent(new Event("input"));
 

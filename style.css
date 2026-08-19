@@ -16,6 +16,26 @@ body {
     cursor: grabbing;
 }
 
+.minimap-canvas {
+    position: absolute;
+    bottom: 1em;
+    right: 1.5em;
+    z-index: 1;
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+    opacity: 1;
+    display: block;
+
+    transition-property: opacity, display;
+    transition-duration: 1s;
+    transition-behavior: allow-discrete;
+}
+
+.minimap-hidden {
+    opacity: 0;
+    display: none;
+}
+
 .panel {
     position: absolute;
     display: flex;
@@ -23,8 +43,8 @@ body {
     flex-direction: column;
     gap: 0.5em;
 
-    transition-property: opacity, display, overlay;
-    transition-duration: 0.25s;
+    transition-property: opacity, display;
+    transition-duration: 0.5s;
     transition-behavior: allow-discrete;
 }
 
