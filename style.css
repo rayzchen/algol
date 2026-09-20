@@ -114,3 +114,29 @@ code {
         opacity: 0;
     }
 }
+
+.loader-modal {
+    position: absolute;
+    align-items: center;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.loader-modal-content {
+    margin: auto;
+    max-height: 80vh;
+}
+
+.loader-modal textarea {
+    width: 73ch;
+    height: 15em;
+    margin-top: 0.5em;
+    resize: none;
+}
+
+.loader-modal .panel-row {
+    margin-top: 0.5em;
+    justify-content: end;
+}

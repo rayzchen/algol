@@ -76,9 +76,7 @@ class Texture {
     }
 }
 
-async function loadRLE(url) {
-    const response = await fetch(url);
-    const text = await response.text();
+function loadRLE(text) {
     const lines = text.split(/\r?\n/);
     while (lines[0][0] == "#") {
         lines.shift();
@@ -181,6 +179,8 @@ const themeLabel = document.getElementById("theme-label");
 const wrapCheckbox = document.getElementById("wrap-checkbox");
 const minimapCheckbox = document.getElementById("minimap-checkbox");
 const resetButton = document.getElementById("reset-button");
+const loaderModal = document.getElementById("loader-modal");
+const loaderInput = document.getElementById("loader-input");
 
 document.querySelectorAll(".input-container input").forEach((e) => {
     e.setAttribute("tabindex", "-1");
@@ -464,18 +464,48 @@ async function main() {
     let front = new Texture(mapSize, mapSize, 0.37);
     let back = new Texture(mapSize, mapSize);
 
+    let updateRLE = (text) => {
+        try {
+            let data = loadRLE(text);
+            front.loadPixels(data);
+        } catch (error) {
+            front = new Texture(mapSize, mapSize);
+        }
+
+        simControls.generation = 0;
+        resetView();
+        requestAnimationFrame(renderFrame);
+    }
+
     document.querySelectorAll(".loader").forEach((e) => {
         e.addEventListener("click", () => {
             if (!simControls.pause) {
                 pauseToggle.click();
             }
             let name = e.innerText.match(/Load (.*)/)[1];
-            loadRLE("patterns/" + name + ".rle").then((data) => {
-                front.loadPixels(data);
-                resetView();
-                requestAnimationFrame(renderFrame);
-            });
+            fetch("patterns/" + name + ".rle")
+                .then((r) => r.text())
+                .then(updateRLE);
         });
+    });
+
+    document.getElementById("loader-rle").addEventListener("click", () => {
+        loaderModal.classList.toggle("panel-hidden");
+    });
+
+    document.getElementById("loader-rle-submit").addEventListener("click", () => {
+        loaderModal.classList.toggle("panel-hidden");
+        if (!simControls.pause) {
+            pauseToggle.click();
+        }
+        requestAnimationFrame(() => updateRLE(loaderInput.value));
+    });
+
+    document.getElementById("loader-blank").addEventListener("click", () => {
+        if (!simControls.pause) {
+            pauseToggle.click();
+        }
+        requestAnimationFrame(() => updateRLE(""));
     });
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
