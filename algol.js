@@ -181,6 +181,7 @@ const minimapCheckbox = document.getElementById("minimap-checkbox");
 const resetButton = document.getElementById("reset-button");
 const loaderModal = document.getElementById("loader-modal");
 const loaderInput = document.getElementById("loader-input");
+const loaderSubmit = document.getElementById("loader-rle-submit");
 
 document.querySelectorAll(".input-container input").forEach((e) => {
     e.setAttribute("tabindex", "-1");
@@ -252,6 +253,13 @@ iterationSlider.addEventListener("input", () => {
 });
 
 window.addEventListener("keydown", (e) => {
+    if (!loaderModal.classList.contains("panel-hidden")) {
+        if (e.key == "Enter" && e.ctrlKey) {
+            loaderSubmit.click();
+        }
+        return;
+    }
+
     if (e.key == "0") {
         simControls.fps = 60;
         simControls.iterations = 1;
@@ -493,7 +501,7 @@ async function main() {
         loaderModal.classList.toggle("panel-hidden");
     });
 
-    document.getElementById("loader-rle-submit").addEventListener("click", () => {
+    loaderSubmit.addEventListener("click", () => {
         loaderModal.classList.toggle("panel-hidden");
         if (!simControls.pause) {
             pauseToggle.click();
