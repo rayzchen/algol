@@ -501,6 +501,15 @@ async function main() {
         loaderModal.classList.toggle("panel-hidden");
     });
 
+    document.getElementById("loader-modal").addEventListener("click", () => {
+        for (const element of document.querySelectorAll("#loader-modal .panel-item")) {
+            if (element.matches(":hover")) {
+                return;
+            }
+        }
+        loaderModal.classList.add("panel-hidden");
+    });
+
     loaderSubmit.addEventListener("click", () => {
         loaderModal.classList.toggle("panel-hidden");
         if (!simControls.pause) {
