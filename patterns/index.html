@@ -2,67 +2,183 @@
 <html>
 <head>
     <title>AlGOL pattern bank</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Noto+Serif");
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: "Noto Serif", Georgia, "Times New Roman", Times, serif;
+        }
+        .page {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 1em 0;
+        }
+        .header .title {
+            font-size: 3em;
+        }
+        .header .description {
+            margin-top: 0.5em;
+        }
+        .category-container {
+            display: flex;
+            text-align: center;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            row-gap: 0.5em;
+        }
+        .category {
+            padding: 0.5em;
+        }
+        .category .title {
+            font-size: 2em;
+        }
+        .button {
+            border: 2px solid white;
+            border-radius: 5px;
+            padding: 0.2em 0.5em;
+            margin-top: 0.5em;
+            user-select: none;
+        }
+        .button span {
+            display: inline-block;
+            position: relative;
+        }
+        .button span::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 1.5px;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            transform-origin: bottom right;
+            transition: transform 0.25s ease-out;
+        }
+        .button:hover {
+            background-color: #222;
+            cursor: pointer;
+        }
+        .button:hover span::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .toast {
+            position: fixed;
+            left: 1em;
+            bottom: 1em;
+            border: 1px solid white;
+            background-color: grey;
+            padding: 0.5em;
+
+            opacity: 1;
+            display: block;
+            transition: opacity, display;
+            transition-duration: 0.5s;
+            transition-behavior: allow-discrete;
+        }
+        .hidden {
+            opacity: 0;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">AlGOL pattern bank</div>
-    <div class="category-container">
-        <div class="category">
-            <span class="title">Spaceships</span>
-            <div class="button-container">
-                <div class="button" pattern="glider">Glider</div>
-                <div class="button" pattern="lwss">Lightweight spaceship</div>
-                <div class="button" pattern="mwss">Middleweight spaceship</div>
-                <div class="button" pattern="hwss">Heavyweight spaceship</div>
-                <div class="button" pattern="loafer">Loafer</div>
-                <div class="button" pattern="copperhead">Copperhead</div>
-                <div class="button" pattern="sirrobin">Sir Robin</div>
-                <div class="button" pattern="233p3h1v0">233P3H1V0</div>
-                <div class="button" pattern="spaghettimonster">Spaghetti monster</div>
+    <div class="page">
+        <div class="header">
+            <div class="title">AlGOL pattern bank</div>
+            <div class="description">Click to view pattern file, shift-click to copy to clipboard</div>
+        </div>
+        <div class="category-container">
+            <div class="category">
+                <div class="title">Spaceships</div>
+                <div class="button-container">
+                    <div class="button" pattern="glider"><span>Glider</span></div>
+                    <div class="button" pattern="lwss"><span>Lightweight spaceship</span></div>
+                    <div class="button" pattern="mwss"><span>Middleweight spaceship</span></div>
+                    <div class="button" pattern="hwss"><span>Heavyweight spaceship</span></div>
+                    <div class="button" pattern="loafer"><span>Loafer</span></div>
+                    <div class="button" pattern="copperhead"><span>Copperhead</span></div>
+                    <div class="button" pattern="sirrobin"><span>Sir Robin</span></div>
+                    <div class="button" pattern="233p3h1v0"><span>233P3H1V0</span></div>
+                    <div class="button" pattern="spaghettimonster"><span>Spaghetti monster</span></div>
+                </div>
+            </div>
+            <div class="category">
+                <div class="title">Guns</div>
+                <div class="button-container">
+                    <div class="button" pattern="glidergun"><span>Gosper glider gun</span></div>
+                    <div class="button" pattern="bigun"><span>Bi-gun</span></div>
+                    <div class="button" pattern="pseudop14glidergun"><span>Pseudo-period 14 glider gun</span></div>
+                    <div class="button" pattern="p14glidergun"><span>Period-14 glider gun</span></div>
+                    <div class="button" pattern="lwssgun"><span>LWSS gun</span></div>
+                    <div class="button" pattern="hwssgun"><span>HWSS gun</span></div>
+                    <div class="button" pattern="p144bigagun"><span>Big A gun</span></div>
+                </div>
+            </div>
+            <div class="category">
+                <div class="title">Puffers</div>
+                <div class="button-container">
+                    <div class="button" pattern="pufferfish"><span>Pufferfish</span></div>
+                    <div class="button" pattern="slowpuffer1"><span>Slow puffer 1</span></div>
+                    <div class="button" pattern="puffer2"><span>Puffer 2</span></div>
+                    <div class="button" pattern="glidertrain"><span>Glider train</span></div>
+                    <div class="button" pattern="spacerake"><span>Space rake</span></div>
+                    <div class="button" pattern="frothingpuffer"><span>Frothing puffer</span></div>
+                    <div class="button" pattern="frothingpufferrake"><span>Frothing puffer rake</span></div>
+                </div>
+            </div>
+            <div class="category">
+                <div class="title">Breeders</div>
+                <div class="buttton-container">
+                    <div class="button" pattern="breeder1"><span>Breeder 1</span></div>
+                    <div class="button" pattern="rileysbreeder"><span>Riley's breeder</span></div>
+                    <div class="button" pattern="pufferfishbreeder"><span>Pufferfish breeder</span></div>
+                    <div class="button" pattern="spacefiller"><span>Spacefiller</span></div>
+                </div>
+            </div>
+            <div class="category">
+                <div class="title">Oscillators</div>
+                <div class="button-container">
+                    <div class="button" pattern="pulsar"><span>Pulsar</span></div>
+                    <div class="button" pattern="tumbler"><span>Tumbler</span></div>
+                    <div class="button" pattern="figureeight"><span>Figure eight</span></div>
+                    <div class="button" pattern="pentadecathlon"><span>Pentadecathlon</span></div>
+                    <div class="button" pattern="queenbeeturningoscillator"><span>Queen bee turning oscillator</span></div>
+                </div>
             </div>
         </div>
-        <div class="category">
-            <span class="title">Guns</span>
-            <div class="button-container">
-                <div class="button" pattern="glidergun">Gosper glider gun</div>
-                <div class="button" pattern="bigun">Bi-gun</div>
-                <div class="button" pattern="pseudop14glidergun">Pseudo-period 14 glider gun</div>
-                <div class="button" pattern="p14glidergun">Period-14 glider gun</div>
-                <div class="button" pattern="lwssgun">LWSS gun</div>
-                <div class="button" pattern="hwssgun">HWSS gun</div>
-                <div class="button" pattern="p144bigagun">Big A gun</div>
-            </div>
-        </div>
-        <div class="category">
-            <span class="title">Puffers</span>
-            <div class="button-container">
-                <div class="button" pattern="pufferfish">Pufferfish</div>
-                <div class="button" pattern="slowpuffer1">Slow puffer 1</div>
-                <div class="button" pattern="puffer2">Puffer 2</div>
-                <div class="button" pattern="glidertrain">Glider train</div>
-                <div class="button" pattern="spacerake">Space rake</div>
-                <div class="button" pattern="frothingpuffer">Frothing puffer rake</div>
-                <div class="button" pattern="frothingpufferrake">Frothing puffer rake</div>
-            </div>
-        </div>
-        <div class="category">
-            <span class="title">Breeders</span>
-            <div class="button-container">
-                <div class="button" pattern="breeder1">Breeder 1</div>
-                <div class="button" pattern="rileysbreeder">Riley's breeder</div>
-                <div class="button" pattern="pufferfishbreeder">Pufferfish breeder</div>
-                <div class="button" pattern="spacefiller">Spacefiller</div>
-            </div>
-        </div>
-        <div class="category">
-            <span class="title">Oscillators</span>
-            <div class="button-container">
-                <div class="button" pattern="pulsar">Pulsar</div>
-                <div class="button" pattern="tumbler">Tumbler</div>
-                <div class="button" pattern="figureeight">Figure eight</div>
-                <div class="button" pattern="pentadecathlon">Pentadecathlon</div>
-                <div class="button" pattern="queenbeeturningoscillator">Queen bee turning oscillator</div>
-            </div>
-        </div>
+        <div class="toast hidden">Copied</div>
     </div>
+    <script>
+        const toast = document.querySelector(".toast");
+        let toastTimeout = null;
+        document.querySelectorAll(".button").forEach((element) => {
+            let pattern = element.getAttribute("pattern");
+            element.addEventListener("click", (event) => {
+                if (event.getModifierState("Shift")) {
+                    fetch("./" + pattern + ".rle")
+                        .then((r) => r.text())
+                        .then((text) => {
+                            navigator.clipboard.writeText(text);
+                            toast.textContent = "Copied " + pattern;
+                            toast.classList.remove("hidden");
+                            clearTimeout(toastTimeout);
+                            setTimeout(() => {
+                                toast.classList.add("hidden");
+                            }, 1000);
+                        });
+                } else {
+                    window.location.href = "view.html?pattern=" + pattern;
+                }
+            });
+        })
+    </script>
 </body>
 </html>
