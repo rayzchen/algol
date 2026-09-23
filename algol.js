@@ -6,24 +6,23 @@ const minimapCanvas = document.getElementById("minimap-canvas");
 const ctx = minimapCanvas.getContext("2d");
 
 class Texture {
-    constructor(width, height, fill=0) {
-        this.width = width;
-        this.height = height;
-
-        const pixels = new Uint8Array(width * height);
-        if (fill != 0) {
-            for (let i = 0; i < width * height; i++) {
-                if (Math.random() < fill) {
-                    pixels[i] = 255;
-                }
-            }
-        }
-
+    constructor() {
         this.texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        this.framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    loadPixels(width, height, pixels) {
+        this.width = width;
+        this.height = height;
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.texImage2D(
             gl.TEXTURE_2D,
             0,
@@ -35,44 +34,40 @@ class Texture {
             gl.UNSIGNED_BYTE,
             pixels
         );
-
-        this.framebuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    bindTexture() {
-        gl.activeTexture(gl.TEXTURE0);
+    randomFill(width, height, fill) {
+        const pixels = new Uint8Array(width * height);
+        if (fill != 0) {
+            for (let i = 0; i < width * height; i++) {
+                if (Math.random() < fill) {
+                    pixels[i] = 255;
+                }
+            }
+        }
+        this.loadPixels(width, height, pixels);
+    }
+
+    loadData(data) {
+        let width = data[0].length;
+        let height = data.length;
+        const pixels = new Uint8Array(width * height);
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                pixels[(height - 1 - y) * width + x] = data[y][x];
+            }
+        }
+        this.loadPixels(width, height, pixels);
+    }
+
+    bindTexture(unit) {
+        gl.activeTexture(gl.TEXTURE0 + unit);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
     }
 
     renderTo() {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
         gl.viewport(0, 0, this.width, this.height);
-    }
-
-    loadPixels(data) {
-        const pixels = new Uint8Array(this.width * this.height);
-        const startX = Math.floor((this.width - data[0].length) / 2);
-        const startY = Math.floor((this.width - data.length) / 2);
-        for (let y = 0; y < data.length; y++) {
-            for (let x = 0; x < data[0].length; x++) {
-                pixels[(data.length - 1 - y + startY) * this.width + x + startX] = data[y][x];
-            }
-        }
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.R8,
-            this.width,
-            this.height,
-            0,
-            gl.RED,
-            gl.UNSIGNED_BYTE,
-            pixels
-        );
     }
 }
 
@@ -198,7 +193,7 @@ guiToggle.addEventListener("click", () => {
     });
 });
 
-let simControls = {iterations: 1, generation: 0, fps: 10, pause: false, step: false};
+let simControls = {iterations: 1, generation: 0, fps: 10, pause: false, step: false, cursorEnabled: false};
 let frameSkipper = {frameCount: 0, current: 0};
 
 pauseToggle.addEventListener("click", () => {
@@ -250,57 +245,6 @@ iterationSlider.addEventListener("input", () => {
         simControls.fps = Math.round(Math.pow(value, 2) * 58) + 1;
     }
     updateSimSpeed();
-});
-
-window.addEventListener("keydown", (e) => {
-    if (!loaderModal.classList.contains("panel-hidden")) {
-        if (e.key == "Enter" && e.ctrlKey) {
-            loaderSubmit.click();
-        }
-        return;
-    }
-
-    if (e.key == "0") {
-        simControls.fps = 60;
-        simControls.iterations = 1;
-        updateSimSlider();
-        return;
-    } else if (e.key == " ") {
-        stepButton.click();
-        return;
-    } else if (e.key == "Enter") {
-        pauseToggle.click();
-        return;
-    } else if (e.key == "+") {
-        zoomMap(1, canvas.width / 2, canvas.height / 2);
-        return;
-    } else if (e.key == "_") {
-        zoomMap(-1, canvas.width / 2, canvas.height / 2);
-        return;
-    }
-
-    if (e.key == "=") {
-        simControls.fps += 1;
-    } else if (e.key == "-") {
-        simControls.fps -= 1;
-    } else {
-        return;
-    }
-
-    if (simControls.fps == 0) {
-        simControls.fps = 1;
-        return;
-    } else if (simControls.fps == 61) {
-        simControls.fps = 60;
-        if (simControls.iterations == 32) {
-            return;
-        }
-        simControls.iterations += 1;
-    } else if (simControls.fps == 59 && e.key == "-" && simControls.iterations != 1) {
-        simControls.fps = 60;
-        simControls.iterations -= 1;
-    }
-    updateSimSlider();
 });
 
 const mapSize = 2048;
@@ -396,7 +340,7 @@ resetView();
 canvas.addEventListener("mousedown", () => {mapView.drag = true;});
 canvas.addEventListener("mouseup", () => {mapView.drag = false;});
 canvas.addEventListener("mousemove", (e) => {
-    if (e.buttons & 1) {
+    if (e.buttons & 1 && !(simControls.cursorEnabled && e.getModifierState("Shift"))) {
         mapView.x -= e.movementX / mapView.scale;
         mapView.y += e.movementY / mapView.scale;
         if (simControls.pause) {
@@ -469,33 +413,12 @@ async function main() {
     const renderShader = new Shader(vertexSource, renderFragSource);
     const logicShader = new Shader(vertexSource, logicFragSource);
 
-    let front = new Texture(mapSize, mapSize, 0.37);
-    let back = new Texture(mapSize, mapSize);
+    let front = new Texture();
+    let back = new Texture();
+    let cursor = new Texture();
 
-    let updateRLE = (text) => {
-        try {
-            let data = loadRLE(text);
-            front.loadPixels(data);
-        } catch (error) {
-            front = new Texture(mapSize, mapSize);
-        }
-
-        simControls.generation = 0;
-        resetView();
-        requestAnimationFrame(renderFrame);
-    }
-
-    document.querySelectorAll(".loader").forEach((e) => {
-        e.addEventListener("click", () => {
-            if (!simControls.pause) {
-                pauseToggle.click();
-            }
-            let name = e.innerText.match(/Load (.*)/)[1];
-            fetch("patterns/" + name + ".rle")
-                .then((r) => r.text())
-                .then(updateRLE);
-        });
-    });
+    front.randomFill(mapSize, mapSize, 0.37);
+    back.randomFill(mapSize, mapSize, 0);
 
     document.getElementById("loader-rle").addEventListener("click", () => {
         loaderModal.classList.toggle("panel-hidden");
@@ -512,17 +435,25 @@ async function main() {
 
     loaderSubmit.addEventListener("click", () => {
         loaderModal.classList.toggle("panel-hidden");
-        if (!simControls.pause) {
-            pauseToggle.click();
-        }
-        requestAnimationFrame(() => updateRLE(loaderInput.value));
+        let data = loadRLE(loaderInput.value);
+        cursor.bindTexture(1);
+        cursor.loadData(data);
+        simControls.cursorEnabled = true;
+        canvas.classList.add("cursorEnabled");
+        gl.uniform1f(renderShader.location("cursorEnabled"), 1);
+        gl.uniform2i(renderShader.location("cursorSize"), cursor.width, cursor.height);
     });
 
     document.getElementById("loader-blank").addEventListener("click", () => {
         if (!simControls.pause) {
             pauseToggle.click();
         }
-        requestAnimationFrame(() => updateRLE(""));
+        requestAnimationFrame(() => {
+            front.loadPixels(mapSize, mapSize, 0);
+            simControls.generation = 0;
+            resetView();
+            requestAnimationFrame(renderFrame);
+        });
     });
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -534,10 +465,21 @@ async function main() {
     gl.uniform2f(renderShader.location("screenSize"), canvas.width, canvas.height);
     gl.uniform2i(renderShader.location("mapSize"), mapSize, mapSize);
 
+    gl.uniform1i(renderShader.location("cursorTexture"), 1);
+    gl.uniform1f(renderShader.location("cursorEnabled"), 0);
+
     logicShader.use();
     gl.uniform1i(logicShader.location("uTexture"), 0);
     gl.uniform1f(logicShader.location("rest"), 0.5);
     gl.uniform2i(logicShader.location("mapSize"), mapSize, mapSize);
+
+    canvas.addEventListener("mousemove", (e) => {
+        gl.uniform2f(
+            renderShader.location("mousePos"),
+            e.clientX,
+            canvas.height - e.clientY
+        );
+    });
 
     themeToggle.addEventListener("click", () => {
         currentTheme = (currentTheme + 1) % themes.length;
@@ -568,13 +510,70 @@ async function main() {
     });
     wrapCheckbox.dispatchEvent(new Event("input"));
 
+    window.addEventListener("keydown", (e) => {
+        if (!loaderModal.classList.contains("panel-hidden")) {
+            if (e.key == "Enter" && e.ctrlKey) {
+                loaderSubmit.click();
+            }
+            return;
+        }
+
+        if (e.key == "Escape" && simControls.cursorEnabled) {
+            simControls.cursorEnabled = false;
+            canvas.classList.remove("cursorEnabled");
+            gl.uniform1f(renderShader.location("cursorEnabled"), 0);
+        }
+
+        if (e.key == "0") {
+            simControls.fps = 60;
+            simControls.iterations = 1;
+            updateSimSlider();
+            return;
+        } else if (e.key == " ") {
+            stepButton.click();
+            return;
+        } else if (e.key == "Enter") {
+            pauseToggle.click();
+            return;
+        } else if (e.key == "+") {
+            zoomMap(1, canvas.width / 2, canvas.height / 2);
+            return;
+        } else if (e.key == "_") {
+            zoomMap(-1, canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        if (e.key == "=") {
+            simControls.fps += 1;
+        } else if (e.key == "-") {
+            simControls.fps -= 1;
+        } else {
+            return;
+        }
+
+        if (simControls.fps == 0) {
+            simControls.fps = 1;
+            return;
+        } else if (simControls.fps == 61) {
+            simControls.fps = 60;
+            if (simControls.iterations == 32) {
+                return;
+            }
+            simControls.iterations += 1;
+        } else if (simControls.fps == 59 && e.key == "-" && simControls.iterations != 1) {
+            simControls.fps = 60;
+            simControls.iterations -= 1;
+        }
+        updateSimSlider();
+    });
+
     let stepLogic = () => {
         let temp = front;
         front = back;
         back = temp;
 
         logicShader.use();
-        back.bindTexture();
+        back.bindTexture(0);
         front.renderTo();
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         simControls.generation++;
@@ -611,7 +610,7 @@ async function main() {
         generationCounter.innerText = simControls.generation;
 
         renderShader.use();
-        front.bindTexture();
+        front.bindTexture(0);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.uniform2f(renderShader.location("center"), mapView.x, mapView.y);

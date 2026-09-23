@@ -21,6 +21,10 @@ code {
     cursor: grabbing;
 }
 
+#gl-canvas.cursorEnabled {
+    cursor: default;
+}
+
 .minimap-canvas {
     position: absolute;
     bottom: 1em;

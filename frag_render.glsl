@@ -11,6 +11,11 @@ uniform float color;
 uniform float wrap;
 out vec4 fragColor;
 
+uniform sampler2D cursorTexture;
+uniform float cursorEnabled;
+uniform ivec2 cursorSize;
+uniform vec2 mousePos;
+
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -26,6 +31,11 @@ void main() {
     float outside = min(1.0, topRight + bottomLeft) * (1.0 - wrap);
     float pixel = texture(uTexture, texCoord).r;
     vec3 hsv = vec3(mix(0.666, 0.333, pow(pixel, 2.0)), mix(0.7, 1.0, pixel), pixel);
-    vec3 mixed = branch(color, hsv2rgb(hsv), vec3(1.0 - step(pixel, rest)));
+
+    vec2 cursorCenter = floor(mousePos / scale + center) - center;
+    vec2 cursorOffset = floor(vec2(cursorSize) / 2.0) + gl_FragCoord.xy / scale - cursorCenter;
+    float cursor = texelFetch(cursorTexture, ivec2(floor(cursorOffset)), 0).r;
+    vec3 hsv_cursor = branch(cursorEnabled * cursor, vec3(0.0, 1.0, 1.0), hsv);
+    vec3 mixed = branch(color, hsv2rgb(hsv_cursor), vec3(1.0 - step(pixel, rest)));
     fragColor = vec4(branch(outside, vec3(0.1), mixed), 1.0);
 }
