@@ -391,7 +391,7 @@ resetView();
 canvas.addEventListener("mousedown", () => {mapView.drag = true;});
 canvas.addEventListener("mouseup", () => {mapView.drag = false;});
 canvas.addEventListener("mousemove", (e) => {
-    if (e.buttons & 1 && !(simControls.cursorEnabled && e.getModifierState("Shift"))) {
+    if (e.buttons & 1 && !simControls.cursorEnabled || e.buttons & 4) {
         mapView.x -= e.movementX / mapView.scale;
         mapView.y += e.movementY / mapView.scale;
         if (simControls.pause) {
