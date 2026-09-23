@@ -203,7 +203,7 @@ pauseToggle.addEventListener("click", () => {
         frameSkipper.frameCount = 0;
         frameSkipper.current = 0;
         simControls.step = true;
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
 });
 stepButton.addEventListener("click", () => {
@@ -212,7 +212,7 @@ stepButton.addEventListener("click", () => {
     }
     simControls.pause = true;
     simControls.step = true;
-    requestAnimationFrame(renderFrame);
+    requestRender();
 });
 
 function updateSimSpeed() {
@@ -245,6 +245,57 @@ iterationSlider.addEventListener("input", () => {
         simControls.fps = Math.round(Math.pow(value, 2) * 58) + 1;
     }
     updateSimSpeed();
+});
+
+window.addEventListener("keydown", (e) => {
+    if (!loaderModal.classList.contains("panel-hidden")) {
+        if (e.key == "Enter" && e.ctrlKey) {
+            loaderSubmit.click();
+        }
+        return;
+    }
+
+    if (e.key == "0") {
+        simControls.fps = 60;
+        simControls.iterations = 1;
+        updateSimSlider();
+        return;
+    } else if (e.key == " ") {
+        stepButton.click();
+        return;
+    } else if (e.key == "Enter") {
+        pauseToggle.click();
+        return;
+    } else if (e.key == "+") {
+        zoomMap(1, canvas.width / 2, canvas.height / 2);
+        return;
+    } else if (e.key == "_") {
+        zoomMap(-1, canvas.width / 2, canvas.height / 2);
+        return;
+    }
+
+    if (e.key == "=") {
+        simControls.fps += 1;
+    } else if (e.key == "-") {
+        simControls.fps -= 1;
+    } else {
+        return;
+    }
+
+    if (simControls.fps == 0) {
+        simControls.fps = 1;
+        return;
+    } else if (simControls.fps == 61) {
+        simControls.fps = 60;
+        if (simControls.iterations == 32) {
+            return;
+        }
+        simControls.iterations += 1;
+    } else if (simControls.fps == 59 && e.key == "-" && simControls.iterations != 1) {
+        simControls.fps = 60;
+        simControls.iterations -= 1;
+    }
+    updateSimSlider();
 });
 
 const mapSize = 2048;
@@ -324,7 +375,7 @@ window.addEventListener("resize", () => {
     minimapCanvas.height = size;
 
     if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
     redrawMinimap();
 });
@@ -344,7 +395,7 @@ canvas.addEventListener("mousemove", (e) => {
         mapView.x -= e.movementX / mapView.scale;
         mapView.y += e.movementY / mapView.scale;
         if (simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
         redrawMinimap();
     }
@@ -360,7 +411,7 @@ function zoomMap(steps, centerX, centerY) {
     mapView.y += (canvas.height - centerY) * (1 / before - 1 / mapView.scale);
     scaleLabel.innerText = mapView.zoom.toFixed(1);
     if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
     redrawMinimap();
 }
@@ -371,7 +422,7 @@ canvas.addEventListener("wheel", (e) => {
 resetButton.addEventListener("click", () => {
     resetView();
     if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
 });
 
@@ -379,6 +430,12 @@ const themes = ["Color", "B/W"];
 let currentTheme = 0;
 
 let renderFrame = (now) => {alert("GL not loaded yet");};
+let requestPending = null;
+let requestRender = () => {
+    if (!requestPending) {
+        requestPending = requestAnimationFrame(renderFrame);
+    }
+}
 async function main() {
     if (gl == null) {
         alert("Unable to initialize WebGL");
@@ -449,10 +506,10 @@ async function main() {
             pauseToggle.click();
         }
         requestAnimationFrame(() => {
-            front.loadPixels(mapSize, mapSize, 0);
+            front.randomFill(mapSize, mapSize, 0);
             simControls.generation = 0;
             resetView();
-            requestAnimationFrame(renderFrame);
+            requestRender();
         });
     });
 
@@ -479,6 +536,19 @@ async function main() {
             e.clientX,
             canvas.height - e.clientY
         );
+        if (simControls.cursorEnabled) {
+            if (simControls.pause) {
+                requestRender();
+            }
+        }
+    });
+
+    window.addEventListener("keydown", (e) => {
+        if (e.key == "Escape" && simControls.cursorEnabled) {
+            simControls.cursorEnabled = false;
+            canvas.classList.remove("cursorEnabled");
+            gl.uniform1f(renderShader.location("cursorEnabled"), 0);
+        }
     });
 
     themeToggle.addEventListener("click", () => {
@@ -491,7 +561,7 @@ async function main() {
             gl.uniform1f(renderShader.location("color"), 0.0);
         }
         if (simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
     });
     currentTheme = -1;
@@ -504,68 +574,11 @@ async function main() {
         renderShader.use();
         gl.uniform1f(renderShader.location("wrap"), wrap);
         if (simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
         redrawMinimap();
     });
     wrapCheckbox.dispatchEvent(new Event("input"));
-
-    window.addEventListener("keydown", (e) => {
-        if (!loaderModal.classList.contains("panel-hidden")) {
-            if (e.key == "Enter" && e.ctrlKey) {
-                loaderSubmit.click();
-            }
-            return;
-        }
-
-        if (e.key == "Escape" && simControls.cursorEnabled) {
-            simControls.cursorEnabled = false;
-            canvas.classList.remove("cursorEnabled");
-            gl.uniform1f(renderShader.location("cursorEnabled"), 0);
-        }
-
-        if (e.key == "0") {
-            simControls.fps = 60;
-            simControls.iterations = 1;
-            updateSimSlider();
-            return;
-        } else if (e.key == " ") {
-            stepButton.click();
-            return;
-        } else if (e.key == "Enter") {
-            pauseToggle.click();
-            return;
-        } else if (e.key == "+") {
-            zoomMap(1, canvas.width / 2, canvas.height / 2);
-            return;
-        } else if (e.key == "_") {
-            zoomMap(-1, canvas.width / 2, canvas.height / 2);
-            return;
-        }
-
-        if (e.key == "=") {
-            simControls.fps += 1;
-        } else if (e.key == "-") {
-            simControls.fps -= 1;
-        } else {
-            return;
-        }
-
-        if (simControls.fps == 0) {
-            simControls.fps = 1;
-            return;
-        } else if (simControls.fps == 61) {
-            simControls.fps = 60;
-            if (simControls.iterations == 32) {
-                return;
-            }
-            simControls.iterations += 1;
-        } else if (simControls.fps == 59 && e.key == "-" && simControls.iterations != 1) {
-            simControls.fps = 60;
-            simControls.iterations -= 1;
-        }
-        updateSimSlider();
-    });
 
     let stepLogic = () => {
         let temp = front;
@@ -582,6 +595,7 @@ async function main() {
     let then = 0;
     let frames = [];
     renderFrame = (now) => {
+        requestPending = null;
         let delta = (now - then) * 0.001;
         if (then != 0) {
             frames.push(delta);
@@ -618,11 +632,11 @@ async function main() {
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         if (!simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
     }
 
-    requestAnimationFrame(renderFrame);
+    requestRender();
 }
 
 await main();
