@@ -548,6 +548,7 @@ async function main() {
             simControls.cursorEnabled = false;
             canvas.classList.remove("cursorEnabled");
             gl.uniform1f(renderShader.location("cursorEnabled"), 0);
+            requestRender();
         }
     });
 
