@@ -208,7 +208,7 @@ pauseToggle.addEventListener("click", () => {
         frameSkipper.frameCount = 0;
         frameSkipper.current = 0;
         simControls.step = true;
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
 });
 stepButton.addEventListener("click", () => {
@@ -217,7 +217,7 @@ stepButton.addEventListener("click", () => {
     }
     simControls.pause = true;
     simControls.step = true;
-    requestAnimationFrame(renderFrame);
+    requestRender();
 });
 
 function updateSimSpeed() {
@@ -380,7 +380,7 @@ window.addEventListener("resize", () => {
     minimapCanvas.height = size;
 
     if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
     redrawMinimap();
 });
@@ -400,7 +400,7 @@ canvas.addEventListener("mousemove", (e) => {
         mapView.x -= e.movementX / mapView.scale;
         mapView.y += e.movementY / mapView.scale;
         if (simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
         redrawMinimap();
     }
@@ -416,7 +416,7 @@ function zoomMap(steps, centerX, centerY) {
     mapView.y += (canvas.height - centerY) * (1 / before - 1 / mapView.scale);
     scaleLabel.innerText = mapView.zoom.toFixed(1);
     if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
     redrawMinimap();
 }
@@ -427,7 +427,7 @@ canvas.addEventListener("wheel", (e) => {
 resetButton.addEventListener("click", () => {
     resetView();
     if (simControls.pause) {
-        requestAnimationFrame(renderFrame);
+        requestRender();
     }
 });
 
@@ -435,6 +435,12 @@ const themes = ["Color", "B/W"];
 let currentTheme = 0;
 
 let renderFrame = (now) => {alert("GL not loaded yet");};
+let requestPending = null;
+let requestRender = () => {
+    if (!requestPending) {
+        requestPending = requestAnimationFrame(renderFrame);
+    }
+}
 async function main() {
     if (gl == null) {
         alert("Unable to initialize WebGL");
@@ -549,7 +555,7 @@ async function main() {
             gl.uniform1f(renderShader.location("color"), 0.0);
         }
         if (simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
     });
     currentTheme = -1;
@@ -562,7 +568,7 @@ async function main() {
         renderShader.use();
         gl.uniform1f(renderShader.location("wrap"), wrap);
         if (simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
         redrawMinimap();
     });
@@ -583,6 +589,7 @@ async function main() {
     let then = 0;
     let frames = [];
     renderFrame = (now) => {
+        requestPending = null;
         let delta = (now - then) * 0.001;
         if (then != 0) {
             frames.push(delta);
@@ -619,11 +626,11 @@ async function main() {
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         if (!simControls.pause) {
-            requestAnimationFrame(renderFrame);
+            requestRender();
         }
     }
 
-    requestAnimationFrame(renderFrame);
+    requestRender();
 }
 
 await main();
