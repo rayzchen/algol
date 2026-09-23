@@ -35,7 +35,7 @@ void main() {
     vec2 cursorOrigin = floor(mousePos / scale + center) - center - floor(vec2(cursorSize) / 2.0);
     vec2 cursorOffset = gl_FragCoord.xy / scale - cursorOrigin;
     float cursor = texelFetch(cursorTexture, ivec2(floor(cursorOffset)), 0).r;
-    vec3 hsv_cursor = branch(cursorEnabled * cursor, vec3(0.0, 1.0, 1.0), hsv);
-    vec3 mixed = branch(color, hsv2rgb(hsv_cursor), vec3(1.0 - step(pixel, rest)));
-    fragColor = vec4(branch(outside, vec3(0.1), mixed), 1.0);
+    vec3 themed = branch(color, hsv2rgb(hsv), vec3(1.0 - step(pixel, rest)));
+    vec3 themedCursor = branch(cursorEnabled * cursor, vec3(cursor, 0.0, 0.0), themed);
+    fragColor = vec4(branch(outside, vec3(0.1), themedCursor), 1.0);
 }
