@@ -32,8 +32,8 @@ void main() {
     float pixel = texture(uTexture, texCoord).r;
     vec3 hsv = vec3(mix(0.666, 0.333, pow(pixel, 2.0)), mix(0.7, 1.0, pixel), pixel);
 
-    vec2 cursorCenter = floor(mousePos / scale + center) - center;
-    vec2 cursorOffset = floor(vec2(cursorSize) / 2.0) + gl_FragCoord.xy / scale - cursorCenter;
+    vec2 cursorOrigin = floor(mousePos / scale + center) - center - floor(vec2(cursorSize) / 2.0);
+    vec2 cursorOffset = gl_FragCoord.xy / scale - cursorOrigin;
     float cursor = texelFetch(cursorTexture, ivec2(floor(cursorOffset)), 0).r;
     vec3 hsv_cursor = branch(cursorEnabled * cursor, vec3(0.0, 1.0, 1.0), hsv);
     vec3 mixed = branch(color, hsv2rgb(hsv_cursor), vec3(1.0 - step(pixel, rest)));
