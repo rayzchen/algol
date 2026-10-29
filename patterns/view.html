@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pattern RLE Viewer</title>
+</head>
+<body>
+    <pre><code id="file-content"></code></pre>
+    <script>
+        const content = document.getElementById("file-content");
+        const params = new URLSearchParams(document.location.search);
+        const name = params.get("pattern");
+        if (!name) {
+            content.textContent = "No pattern supplied";
+        } else {
+            document.title = name + " - Pattern RLE Viewer";
+            fetch(name + ".rle")
+                .then((r) => r.text())
+                .then((text) => {content.textContent = text;})
+                .catch((e) => {
+                    content.textContent = `Could not load pattern '${name}'`
+                });
+        }
+    </script>
+</body>
+</html>

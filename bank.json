@@ -1,0 +1,59 @@
+[
+    {
+        "name": "Spaceships",
+        "patterns": {
+            "glider": "Glider",
+            "lwss": "Lightweight spaceship",
+            "mwss": "Middleweight spaceship",
+            "hwss": "Heavyweight spaceship",
+            "loafer": "Loafer",
+            "copperhead": "Copperhead",
+            "sirrobin": "Sir Robin",
+            "233p3h1v0": "233P3H1V0",
+            "spaghettimonster": "Spaghetti monster"
+        }
+    },
+    {
+        "name": "Guns",
+        "patterns": {
+            "glidergun": "Gosper glider gun",
+            "bigun": "Bi-gun",
+            "pseudop14glidergun": "Pseudo-period 14 glider gun",
+            "p14glidergun": "Period-14 glider gun",
+            "lwssgun": "LWSS gun",
+            "hwssgun": "HWSS gun",
+            "p144bigagun": "Big A gun"
+        }
+    },
+    {
+        "name": "Puffers",
+        "patterns": {
+            "pufferfish": "Pufferfish",
+            "slowpuffer1": "Slow puffer 1",
+            "puffer2": "Puffer 2",
+            "glidertrain": "Glider train",
+            "spacerake": "Space rake",
+            "frothingpuffer": "Frothing puffer",
+            "frothingpufferrake": "Frothing puffer rake"
+        }
+    },
+    {
+        "name": "Breeders",
+        "patterns": {
+            "breeder1": "Breeder 1",
+            "rileysbreeder": "Riley's breeder",
+            "pufferfishbreeder": "Pufferfish breeder",
+            "spacefiller": "Spacefiller"
+        }
+    },
+    {
+        "name": "Oscillators",
+        "patterns": {
+            "pulsar": "Pulsar",
+            "tumbler": "Tumbler",
+            "figureeight": "Figure eight",
+            "pentadecathlon": "Pentadecathlon",
+            "queenbeeturningoscillator": "Queen bee turning oscillator"
+        }
+    }
+]
