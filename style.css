@@ -145,3 +145,7 @@ code {
     margin-top: 0.5em;
     justify-content: end;
 }
+
+#pattern-link:visited {
+    color: white;
+}
